@@ -1,0 +1,572 @@
+<title>GAP-Analyse — NEXUS Prioritäten vs. Realität</title>
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --bg-card: #ffffff;
+    --bg-inset: #eceae4;
+    --text: #2c2923;
+    --text-muted: #7a7468;
+    --text-dim: #a09888;
+    --accent: #b5522a;
+    --accent-light: #f4e8e1;
+    --green: #2a6e4f;
+    --green-light: #e2f0e8;
+    --red: #a63d2f;
+    --red-light: #f4e2de;
+    --blue: #2e5a8a;
+    --blue-light: #e0eaf4;
+    --amber: #8a6e2e;
+    --amber-light: #f4eee0;
+    --border: #ddd9d0;
+    --border-strong: #c5bfb4;
+    --mono-bg: #edebe5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111110; --bg-card: #1a1918; --bg-inset: #201f1d;
+      --text: #e2dfd8; --text-muted: #908a7e; --text-dim: #635d52;
+      --accent: #d4734a; --accent-light: #2a1c14;
+      --green: #5cb882; --green-light: #142a1e;
+      --red: #d45a4a; --red-light: #2a1410;
+      --blue: #5a8ec4; --blue-light: #14202e;
+      --amber: #c4a44a; --amber-light: #2a2414;
+      --border: #2e2c28; --border-strong: #3e3b34; --mono-bg: #1e1d1a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111110; --bg-card: #1a1918; --bg-inset: #201f1d;
+    --text: #e2dfd8; --text-muted: #908a7e; --text-dim: #635d52;
+    --accent: #d4734a; --accent-light: #2a1c14;
+    --green: #5cb882; --green-light: #142a1e;
+    --red: #d45a4a; --red-light: #2a1410;
+    --blue: #5a8ec4; --blue-light: #14202e;
+    --amber: #c4a44a; --amber-light: #2a2414;
+    --border: #2e2c28; --border-strong: #3e3b34; --mono-bg: #1e1d1a;
+  }
+  :root[data-theme="light"] {
+    --bg: #f5f4f0; --bg-card: #ffffff; --bg-inset: #eceae4;
+    --text: #2c2923; --text-muted: #7a7468; --text-dim: #a09888;
+    --accent: #b5522a; --accent-light: #f4e8e1;
+    --green: #2a6e4f; --green-light: #e2f0e8;
+    --red: #a63d2f; --red-light: #f4e2de;
+    --blue: #2e5a8a; --blue-light: #e0eaf4;
+    --amber: #8a6e2e; --amber-light: #f4eee0;
+    --border: #ddd9d0; --border-strong: #c5bfb4; --mono-bg: #edebe5;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 0.875rem; line-height: 1.55;
+    padding: 2rem 1.25rem 4rem; max-width: 64rem; margin: 0 auto;
+  }
+  .doc-header {
+    border-bottom: 2px solid var(--red);
+    padding-bottom: 1.25rem; margin-bottom: 2rem;
+  }
+  .doc-header .eyebrow {
+    font-family: 'Menlo','Consolas',monospace;
+    font-size: 0.65rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--red); margin-bottom: 0.35rem;
+  }
+  .doc-header h1 {
+    font-family: Georgia, serif; font-size: 1.5rem;
+    font-weight: 700; line-height: 1.2; text-wrap: balance; margin-bottom: 0.3rem;
+  }
+  .doc-header .meta { font-size: 0.78rem; color: var(--text-muted); }
+
+  .sect { margin-bottom: 2.25rem; }
+  .sect-head {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-bottom: 0.85rem; padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .sect-bar { width: 3px; height: 1rem; border-radius: 1px; flex-shrink: 0; }
+  .sect-label {
+    font-family: 'Menlo','Consolas',monospace;
+    font-size: 0.68rem; letter-spacing: 0.1em;
+    text-transform: uppercase; font-weight: 600; color: var(--text-muted);
+  }
+
+  .verdict-box {
+    padding: 1rem 1.25rem; margin-bottom: 0.5rem;
+    border-left: 3px solid var(--red);
+    background: var(--bg-card); border-right: 1px solid var(--border);
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  }
+  .verdict-box.green { border-left-color: var(--green); }
+  .verdict-box.amber { border-left-color: var(--amber); }
+  .verdict-box.red { border-left-color: var(--red); }
+  .verdict-title {
+    font-family: Georgia, serif; font-size: 0.95rem;
+    font-weight: 700; margin-bottom: 0.25rem;
+  }
+  .verdict-body { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
+  .verdict-body strong { color: var(--text); }
+
+  .tag {
+    display: inline-block; font-family: 'Menlo','Consolas',monospace;
+    font-size: 0.58rem; letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 0.15em 0.45em; border-radius: 2px; vertical-align: middle;
+  }
+  .tag.red { background: var(--red-light); color: var(--red); }
+  .tag.green { background: var(--green-light); color: var(--green); }
+  .tag.amber { background: var(--amber-light); color: var(--amber); }
+  .tag.blue { background: var(--blue-light); color: var(--blue); }
+
+  .stat-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+    gap: 0.5rem; margin-bottom: 1.5rem;
+  }
+  .stat-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    padding: 0.6rem 0.75rem; text-align: center;
+  }
+  .stat-num {
+    font-family: 'Menlo','Consolas',monospace;
+    font-size: 1.4rem; font-weight: 700; line-height: 1.1;
+  }
+  .stat-label {
+    font-size: 0.68rem; color: var(--text-muted);
+    margin-top: 0.2rem; line-height: 1.3;
+  }
+
+  .scroll-x { overflow-x: auto; }
+  table.t { width: 100%; border-collapse: collapse; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+  table.t th {
+    font-family: 'Menlo','Consolas',monospace; font-size: 0.6rem;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim);
+    text-align: left; padding: 0.4rem 0.5rem;
+    border-bottom: 2px solid var(--border-strong); font-weight: 600;
+  }
+  table.t td { padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+
+  .lever-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    padding: 0.85rem 1rem; margin-bottom: 0.5rem;
+  }
+  .lever-num {
+    font-family: 'Menlo','Consolas',monospace; font-size: 0.62rem;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    margin-bottom: 0.15rem;
+  }
+  .lever-title {
+    font-family: Georgia, serif; font-size: 0.95rem;
+    font-weight: 700; margin-bottom: 0.3rem;
+  }
+  .lever-body { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
+  .lever-body strong { color: var(--text); }
+  .lever-action {
+    margin-top: 0.5rem; padding-top: 0.4rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.78rem; color: var(--green); font-weight: 600;
+  }
+
+  .bar-row {
+    display: grid; grid-template-columns: 10rem 1fr 3rem;
+    gap: 0.5rem; align-items: center; padding: 0.35rem 0;
+    border-bottom: 1px solid var(--border); font-size: 0.8rem;
+  }
+  .bar-row:last-child { border-bottom: none; }
+  .bar-track {
+    height: 8px; background: var(--bg-inset); border-radius: 4px; overflow: hidden;
+  }
+  .bar-fill { height: 100%; border-radius: 4px; }
+  .bar-label { font-size: 0.78rem; }
+  .bar-pct {
+    font-family: 'Menlo','Consolas',monospace; font-size: 0.72rem;
+    color: var(--text-dim); text-align: right;
+  }
+
+  footer {
+    margin-top: 3rem; padding-top: 0.75rem;
+    border-top: 2px solid var(--red);
+    font-family: 'Menlo','Consolas',monospace;
+    font-size: 0.65rem; color: var(--text-dim);
+  }
+</style>
+
+<div class="doc-header">
+  <div class="eyebrow">NEXUS AI-OS · GAP-Analyse</div>
+  <h1>Prioritäten vs. Realität — Wo sitzt der grösste Hebel?</h1>
+  <div class="meta">Basis: ~400 Claude-Chats + 30 Projekte (Sep 2024 – Jul 2026) vs. Memory-Extraktion Seed Condensation</div>
+</div>
+
+<!-- ═══════ EXECUTIVE SUMMARY ═══════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar" style="background:var(--red)"></div>
+    <span class="sect-label">Executive Summary — Kernbefund</span>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--red)">~40</div>
+      <div class="stat-label">Chats über NEXUS-Architektur ohne lauffähiges System</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--amber)">0</div>
+      <div class="stat-label">Registries existieren (Workflow, Prompt, Master Index)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--green)">~80</div>
+      <div class="stat-label">Produktive Engineering-Chats (Statik, EC5, EC2)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--blue)">12+</div>
+      <div class="stat-label">Buchhaltungs-Chats — immer noch manuell</div>
+    </div>
+  </div>
+
+  <div class="verdict-box red">
+    <div class="verdict-title">Hauptdiagnose: Design-Loop ohne Implementierung</div>
+    <div class="verdict-body">
+      Das NEXUS AI-OS — das mit Abstand höchste Ziel (4/4 Frequenz in allen Memory-Extraktionen) — wird seit >12 Monaten in wechselnden Chats immer wieder <strong>neu entworfen</strong>, aber nie <strong>gebaut</strong>. Allein im Juli 2026 gibt es 4 identische Chats "AI-OS Kontrollzentrum mit Conditional Pattern Discovery". Das System existiert ausschließlich als Dashboard-Mockups und Architektur-Diagramme. Es gibt <strong>keine Codebasis, keine API, keinen persistenten State, keine Registry</strong>.
+      <br><br>
+      Gleichzeitig werden die eigentlichen Engineering-Workflows (EC5, EC2, HBV, Durchstanzen) <strong>erfolgreich in Python implementiert</strong> — aber nicht als Teil von NEXUS formalisiert. Die produktivste Arbeit passiert an NEXUS vorbei.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ GAP MATRIX ═══════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar" style="background:var(--accent)"></div>
+    <span class="sect-label">GAP-Matrix — Ziel vs. Ist-Zustand</span>
+  </div>
+  <div class="scroll-x">
+    <table class="t">
+      <thead>
+        <tr><th>Prioritäres Ziel</th><th>Soll</th><th>Ist</th><th>Gap</th><th>Chats</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>NEXUS AI-OS</strong></td>
+          <td>Lauffähiges Multi-LLM-OS mit Registry, Audit, Orchestrierung</td>
+          <td>~40 Architektur-Chats, Dashboards, Diagramme. Kein Code, kein State, kein Deploy.</td>
+          <td><span class="tag red">Kritisch</span></td>
+          <td style="font-family:monospace;font-size:0.72rem;">~40</td>
+        </tr>
+        <tr>
+          <td><strong>Workflow Registry</strong></td>
+          <td>Zentrale, versionierte Registrierung aller Workflows</td>
+          <td>Nicht existent. Workflows existieren als lose Chat-Fragmente.</td>
+          <td><span class="tag red">Kritisch</span></td>
+          <td style="font-family:monospace;font-size:0.72rem;">0</td>
+        </tr>
+        <tr>
+          <td><strong>Prompt Registry</strong></td>
+          <td>Versionierte, durchsuchbare Prompt-Bibliothek</td>
+          <td>T3N Meisterprompter existiert als Showcase. Keine echte Registry.</td>
+          <td><span class="tag red">Kritisch</span></td>
+          <td style="font-family:monospace;font-size:0.72rem;">2</td>
+        </tr>
+        <tr>
+          <td><strong>Knowledge Base / SSoT</strong></td>
+          <td>Zentrale, graphbasierte Wissens-KB mit RAG</td>
+          <td>Wissen fragmentiert über ~15 Projekt-Silos (INGENIEURHOLZBAU, NORMEN, EC5…). Mehrfach PDF-Parser-Ansätze, nie konsolidiert.</td>
+          <td><span class="tag red">Kritisch</span></td>
+          <td style="font-family:monospace;font-size:0.72rem;">~25</td>
+        </tr>
+        <tr>
+          <td><strong>Tragwerksplanung</strong></td>
+          <td>AI-gestützte, normkonforme Bemessung</td>
+          <td>Funktioniert gut: EC5-Python-Tools, HBV-Berechnungen, Durchstanzen, Seilstatik. Reale Projekte laufen.</td>
+          <td><span class="tag green">Gut</span></td>
+          <td style="font-family:monospace;font-size:0.72rem;">~80</td>
+        </tr>
+        <tr>
+          <td><strong>Eurocode-Workflows</strong></td>
+          <td>Automatisierte, reproduzierbare Nachweisketten</td>
+          <td>Mehrere funktionierende Python-Module (EC5, EC2, HBV). Nicht standardisiert, nicht registriert.</td>
+          <td><span class="tag amber">Mittel</span></td>
+          <td style="font-family:monospace;font-size:0.72rem;">~30</td>
+        </tr>
+        <tr>
+          <td><strong>Büro-Automatisierung</strong></td>
+          <td>Mail-Triage, Buchhaltung, Honorare, DMS</td>
+          <td>12+ Buchhaltungs-Chats über 14 Monate, wiederkehrend manuell. Office-Agent existiert als Routine, aber nicht integriert.</td>
+          <td><span class="tag amber">Mittel</span></td>
+          <td style="font-family:monospace;font-size:0.72rem;">~20</td>
+        </tr>
+        <tr>
+          <td><strong>Multi-LLM Peer Review</strong></td>
+          <td>Cross-Validation zwischen LLMs</td>
+          <td>Konzeptionell beschrieben, nie implementiert. Kein Protokoll, kein Routing.</td>
+          <td><span class="tag red">Kritisch</span></td>
+          <td style="font-family:monospace;font-size:0.72rem;">3</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════ ANTI-PATTERNS ═══════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar" style="background:var(--red)"></div>
+    <span class="sect-label">Identifizierte Anti-Patterns</span>
+  </div>
+
+  <div class="verdict-box red">
+    <div class="verdict-title">1. Endlos-Design-Loop ("Architecture Astronaut")</div>
+    <div class="verdict-body">
+      <strong>Symptom:</strong> "AI-OS Kontrollzentrum mit Conditional Pattern Discovery" — 4 identische Chats in 4 Tagen. "Defragmentierung", "Ratifizierte Architektur", "Governance Engine", "MVP-Roadmap" — immer neue Begriffe für dasselbe unerreichte Ziel.
+      <br><strong>Ursache:</strong> Das System wird top-down als Gesamtarchitektur entworfen statt bottom-up aus funktionierenden Teilen zusammengesetzt. Jeder neue Chat startet bei Null.
+      <br><strong>Kosten:</strong> ~40 Chats × ~30 Min = ~20h+ investiert in Architektur-Iterationen ohne Output.
+    </div>
+  </div>
+
+  <div class="verdict-box amber">
+    <div class="verdict-title">2. Wissens-Fragmentierung über Chat-Silos</div>
+    <div class="verdict-body">
+      <strong>Symptom:</strong> Holzbau-Wissen verteilt über 5 separate Projekte (INGENIEURHOLZBAU, NORMEN_HOLZBAU, TIMBER CONSTRUCTION, HOLZBAU-PYTHON-GPT, EC5-HOLZBAU-BEMESSUNG). Jedes startet eine neue Wissensinsel.
+      <br><strong>Ursache:</strong> Kein zentrales Wissensrepository. Jedes Claude-Projekt ist eine Sackgasse ohne Verbindung zu den anderen.
+      <br><strong>Kosten:</strong> Wissen wird mehrfach aufgebaut, geht zwischen Sessions verloren, ist nicht auffindbar.
+    </div>
+  </div>
+
+  <div class="verdict-box amber">
+    <div class="verdict-title">3. Wiederkehrende manuelle Arbeit ohne Automatisierung</div>
+    <div class="verdict-body">
+      <strong>Symptom:</strong> Buchhaltung/Honorarnoten erscheint in 12+ Chats über 14 Monate (Aug 2025 – Jul 2026). Jedes Mal: Daten sammeln, sortieren, priorisieren — manuell.
+      <br><strong>Ursache:</strong> Kein persistentes System. Jeder Chat ist ein Einmal-Aufwand, der beim nächsten Mal wiederholt wird.
+      <br><strong>Kosten:</strong> Geschätzt 2–3h/Monat für Arbeit, die ein Skript in 5 Minuten erledigen könnte.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ REALITÄTS-CHECK: WAS FUNKTIONIERT ═══════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar" style="background:var(--green)"></div>
+    <span class="sect-label">Was bereits funktioniert — versteckte NEXUS-Bausteine</span>
+  </div>
+
+  <div class="verdict-box green">
+    <div class="verdict-title">Die Engineering-Tools SIND bereits NEXUS v0.1</div>
+    <div class="verdict-body">
+      Die produktivste Arbeit passiert im Engineering-Bereich — und genau diese Tools sind die natürlichen ersten Bewohner einer Workflow Registry:
+    </div>
+  </div>
+
+  <div class="scroll-x">
+    <table class="t">
+      <thead>
+        <tr><th>Tool/Workflow</th><th>Status</th><th>NEXUS-Potential</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>EC5 Holzbau-Bemessungs-Kit</strong></td>
+          <td><span class="tag green">Läuft</span></td>
+          <td>Workflow-Registry-Eintrag #1 — parametrisierbar, reproduzierbar</td>
+        </tr>
+        <tr>
+          <td><strong>HBV-Rippendecken (Diskrete Methode)</strong></td>
+          <td><span class="tag green">Läuft</span></td>
+          <td>Spezialworkflow mit Forschungshintergrund (Huber 2010)</td>
+        </tr>
+        <tr>
+          <td><strong>Durchstanzen-Formular</strong></td>
+          <td><span class="tag green">Läuft</span></td>
+          <td>EC2-Workflow, sofort registrierbar</td>
+        </tr>
+        <tr>
+          <td><strong>Seilstatik (EC1/EC3)</strong></td>
+          <td><span class="tag green">Läuft</span></td>
+          <td>Spezialist-Workflow, klar abgegrenzt</td>
+        </tr>
+        <tr>
+          <td><strong>FT-Träger-Matrix (Oberndorfer)</strong></td>
+          <td><span class="tag amber">In Arbeit</span></td>
+          <td>Excel-Automatisierung → Python-Pipeline</td>
+        </tr>
+        <tr>
+          <td><strong>FloorPlan2BIM Parser</strong></td>
+          <td><span class="tag amber">Prototyp</span></td>
+          <td>Gen-AI Framework für Planparsing → DXF/IFC</td>
+        </tr>
+        <tr>
+          <td><strong>RFEM6 API-Anbindung</strong></td>
+          <td><span class="tag amber">Prototyp</span></td>
+          <td>MCP-Server für RFEM-Claude-Integration</td>
+        </tr>
+        <tr>
+          <td><strong>Office Management Agent</strong></td>
+          <td><span class="tag green">Läuft</span></td>
+          <td>Claude Code Routine — Mail, Kalender, Briefing</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════ ZEITVERTEILUNG ═══════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar" style="background:var(--blue)"></div>
+    <span class="sect-label">Geschätzte Zeitverteilung nach Chat-Kategorie</span>
+  </div>
+
+  <div class="bar-row">
+    <span class="bar-label"><strong>Engineering/Statik</strong></span>
+    <div class="bar-track"><div class="bar-fill" style="width:35%;background:var(--green)"></div></div>
+    <span class="bar-pct">~35%</span>
+  </div>
+  <div class="bar-row">
+    <span class="bar-label"><strong>NEXUS/AI-OS Design</strong></span>
+    <div class="bar-track"><div class="bar-fill" style="width:20%;background:var(--red)"></div></div>
+    <span class="bar-pct">~20%</span>
+  </div>
+  <div class="bar-row">
+    <span class="bar-label"><strong>Knowledge/Wissen</strong></span>
+    <div class="bar-track"><div class="bar-fill" style="width:12%;background:var(--blue)"></div></div>
+    <span class="bar-pct">~12%</span>
+  </div>
+  <div class="bar-row">
+    <span class="bar-label"><strong>Büro/Buchhaltung</strong></span>
+    <div class="bar-track"><div class="bar-fill" style="width:10%;background:var(--amber)"></div></div>
+    <span class="bar-pct">~10%</span>
+  </div>
+  <div class="bar-row">
+    <span class="bar-label"><strong>Tools/Coding</strong></span>
+    <div class="bar-track"><div class="bar-fill" style="width:10%;background:var(--green)"></div></div>
+    <span class="bar-pct">~10%</span>
+  </div>
+  <div class="bar-row">
+    <span class="bar-label"><strong>Research/Exploration</strong></span>
+    <div class="bar-track"><div class="bar-fill" style="width:8%;background:var(--text-dim)"></div></div>
+    <span class="bar-pct">~8%</span>
+  </div>
+  <div class="bar-row">
+    <span class="bar-label"><strong>Sonstiges</strong></span>
+    <div class="bar-track"><div class="bar-fill" style="width:5%;background:var(--text-dim)"></div></div>
+    <span class="bar-pct">~5%</span>
+  </div>
+</div>
+
+<!-- ═══════ TOP 5 HEBEL ═══════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar" style="background:var(--green)"></div>
+    <span class="sect-label">Top 5 Hebel — Was zuerst anpacken</span>
+  </div>
+
+  <div class="lever-card" style="border-top: 3px solid var(--red);">
+    <div class="lever-num" style="color:var(--red)">Hebel #1 — Höchste Priorität</div>
+    <div class="lever-title">NEXUS-Design-Loop brechen: Bottom-Up statt Top-Down</div>
+    <div class="lever-body">
+      <strong>Problem:</strong> 40+ Architektur-Chats, 0 Zeilen produktiver Code. Jeder Chat redesignt das Gesamtsystem.
+      <br><strong>Lösung:</strong> Stoppe alle weiteren Architektur-Chats. Nimm die <strong>existierenden Engineering-Tools</strong> (EC5, HBV, Durchstanzen) und formalisiere sie als die ersten <strong>echten</strong> Workflow-Registry-Einträge. NEXUS v0.1 ist nicht ein neues Dashboard — es ist ein <strong>Git-Repo mit YAML-Definitionen</strong> deiner existierenden Workflows.
+      <br><strong>Konkret:</strong> Ein Ordner <code>workflows/</code> mit je einer <code>workflow.yaml</code> pro Engineering-Tool: Name, Input-Schema, Output-Schema, Normenbasis, Version. Das IST die Registry.
+    </div>
+    <div class="lever-action">Erster Schritt: workflows/ec5-biegung.yaml anlegen — 30 Minuten.</div>
+  </div>
+
+  <div class="lever-card" style="border-top: 3px solid var(--accent);">
+    <div class="lever-num" style="color:var(--accent)">Hebel #2 — Schnellster ROI</div>
+    <div class="lever-title">Wissens-Silos konsolidieren: Eine Knowledge Base, nicht 15 Projekte</div>
+    <div class="lever-body">
+      <strong>Problem:</strong> Holzbau-Wissen über 5 Projekte verstreut. Normen in einem Projekt, Materialien in einem anderen, Berechnungen in einem dritten. Nichts verlinkt.
+      <br><strong>Lösung:</strong> Ein <strong>einziges Git-Repo</strong> <code>nexus-knowledge/</code> mit strukturierten YAML/JSON-Dateien:
+      <code>materials/gl24h.yaml</code>, <code>norms/ec5-biegung.yaml</code>, <code>formulas/hbv-discrete.yaml</code>.
+      Kein Graph-Database-Overhead — einfache Dateien, die RAG-ready sind.
+      <br><strong>Vorteil:</strong> Sofort durchsuchbar, versioniert, für jeden LLM als Context nutzbar. Die 5 Holzbau-Projekte werden zu Quellen für die Migration.
+    </div>
+    <div class="lever-action">Erster Schritt: materials/ Ordner mit 10 Holz-Materialdateien aus existierenden Chats extrahieren.</div>
+  </div>
+
+  <div class="lever-card" style="border-top: 3px solid var(--amber);">
+    <div class="lever-num" style="color:var(--amber)">Hebel #3 — Wiederkehrende Schmerzen eliminieren</div>
+    <div class="lever-title">Buchhaltung automatisieren: Python-Skript statt 12 Chats/Jahr</div>
+    <div class="lever-body">
+      <strong>Problem:</strong> Buchhaltung, Honorarnoten, E-A-Rechnung tauchen alle 4–6 Wochen als neuer Chat auf. Jedes Mal: Konten durchgehen, kategorisieren, summieren.
+      <br><strong>Lösung:</strong> Ein <strong>einmaliges Python-Skript</strong>, das Bankdaten (CSV) einliest, nach Schema kategorisiert und eine E-A-Rechnung als PDF/Excel ausgibt. Läuft lokal, kein LLM nötig.
+      <br><strong>Vorteil:</strong> ~2h/Monat gespart. Das Skript wird Workflow-Registry-Eintrag #2.
+    </div>
+    <div class="lever-action">Erster Schritt: CSV-Import + Kategorisierungsregeln als Python-Dict — 2 Stunden.</div>
+  </div>
+
+  <div class="lever-card" style="border-top: 3px solid var(--blue);">
+    <div class="lever-num" style="color:var(--blue)">Hebel #4 — Systemischer Effekt</div>
+    <div class="lever-title">CLAUDE.md / Projekt-Context als "lebendiges Memory"</div>
+    <div class="lever-body">
+      <strong>Problem:</strong> Jeder neue Chat startet bei Null. Julian muss jedes Mal Kontext re-erklären. Die ChatGPT-Memories sind opak und nicht exportierbar.
+      <br><strong>Lösung:</strong> Dieses Seed-Condensation-Dokument + eine <strong>CLAUDE.md</strong> pro Repo, die den Projektkontext, Conventions, Normenreferenzen und den aktuellen Stand persistent speichert. Claude Code liest diese automatisch.
+      <br><strong>Vorteil:</strong> Kein Kontextverlust mehr. Jede neue Session startet mit vollem Wissensstand.
+    </div>
+    <div class="lever-action">Erster Schritt: CLAUDE.md für das Hauptarbeits-Repo anlegen mit Identity, Normen, Conventions.</div>
+  </div>
+
+  <div class="lever-card" style="border-top: 3px solid var(--green);">
+    <div class="lever-num" style="color:var(--green)">Hebel #5 — Strategisch</div>
+    <div class="lever-title">Engineering-Workflows als NEXUS-MVP deklarieren</div>
+    <div class="lever-body">
+      <strong>Problem:</strong> NEXUS wird als zukünftiges Mega-System gedacht. Die funktionierende Arbeit (EC5-Tools, HBV-Rechner, Office-Agent) wird nicht als NEXUS wahrgenommen.
+      <br><strong>Lösung:</strong> <strong>Mindset-Shift:</strong> Die existierenden Tools + die Workflow-YAML-Definitionen + die Knowledge-Dateien + die CLAUDE.md <strong>= NEXUS v0.1</strong>. Kein Dashboard nötig. Das System ist das Repo.
+      <br><strong>Vorteil:</strong> Sofort "produktionsreif" im Sinne von: es existiert, es ist versioniert, es funktioniert. Das Dashboard kommt als Ansicht darüber, nicht als Startpunkt.
+    </div>
+    <div class="lever-action">Erster Schritt: Repo "nexus-v01" anlegen, existierende Tools als Submodule oder Ordner einhängen.</div>
+  </div>
+</div>
+
+<!-- ═══════ REIHENFOLGE ═══════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar" style="background:var(--accent)"></div>
+    <span class="sect-label">Empfohlene Reihenfolge — Nächste 4 Wochen</span>
+  </div>
+  <div class="scroll-x">
+    <table class="t">
+      <thead>
+        <tr><th>Woche</th><th>Aktion</th><th>Output</th><th>NEXUS-Baustein</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-family:monospace">W1</td>
+          <td>Repo <code>nexus-v01</code> anlegen. CLAUDE.md schreiben. 3 existierende Tools als <code>workflows/*.yaml</code> formalisieren.</td>
+          <td>Git-Repo mit Struktur</td>
+          <td><span class="tag green">Registry v0.1</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:monospace">W2</td>
+          <td>Knowledge-Dateien aus Holzbau-Projekten extrahieren → <code>knowledge/materials/</code>, <code>knowledge/norms/</code></td>
+          <td>~30 YAML-Dateien</td>
+          <td><span class="tag green">KB v0.1</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:monospace">W3</td>
+          <td>Buchhaltungs-Skript (CSV → E-A-Rechnung). Als Workflow registrieren.</td>
+          <td>Python-Skript + YAML</td>
+          <td><span class="tag green">Workflow #4</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:monospace">W4</td>
+          <td>Prompt-Sammlung aus bestehenden Projekten extrahieren → <code>prompts/*.yaml</code></td>
+          <td>~20 Prompt-Templates</td>
+          <td><span class="tag green">Prompt Registry v0.1</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════ SCHLUSSFOLGERUNG ═══════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar" style="background:var(--accent)"></div>
+    <span class="sect-label">Schlussfolgerung</span>
+  </div>
+  <div class="verdict-box" style="border-left-color:var(--accent);">
+    <div class="verdict-title">NEXUS existiert bereits — es muss nur erkannt und formalisiert werden</div>
+    <div class="verdict-body">
+      Die größte Lücke ist nicht technisch, sondern <strong>konzeptionell</strong>: NEXUS wird als unerreichtes Zukunftsprojekt behandelt, obwohl die Bausteine (Engineering-Tools, Office-Agent, Knowledge-Fragmente) bereits funktionieren. Der Hebel liegt nicht in einem weiteren Architektur-Chat, sondern in <strong>30 Minuten YAML-Schreiben</strong>: die existierenden Tools registrieren, das Wissen konsolidieren, und das Ergebnis "NEXUS v0.1" nennen.
+      <br><br>
+      <strong>Die Regel:</strong> Kein neues Dashboard, bevor nicht 10 Workflows registriert sind. Kein neuer Architektur-Chat, bevor nicht die Knowledge Base 50 Dateien hat. Bottom-up, nicht top-down.
+    </div>
+  </div>
+</div>
+
+<footer>
+  GAP-ANALYSE v1.0 · Quellen: ~400 Claude Chats + 30 Projekte + 4 Memory-Extraktionen · 2026-07-14
+</footer>
