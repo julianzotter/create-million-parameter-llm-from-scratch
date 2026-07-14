@@ -1,0 +1,1039 @@
+<title>NEXUS Seed Condensation — Julian Zotter</title>
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --bg-card: #ffffff;
+    --bg-inset: #eceae4;
+    --text: #2c2923;
+    --text-muted: #7a7468;
+    --text-dim: #a09888;
+    --accent: #b5522a;
+    --accent-light: #f4e8e1;
+    --green: #2a6e4f;
+    --green-light: #e2f0e8;
+    --blue: #2e5a8a;
+    --blue-light: #e0eaf4;
+    --border: #ddd9d0;
+    --border-strong: #c5bfb4;
+    --mono-bg: #edebe5;
+    --tag-high: #b5522a;
+    --tag-high-bg: #f4e8e1;
+    --tag-mid: #2a6e4f;
+    --tag-mid-bg: #e2f0e8;
+    --tag-low: #7a7468;
+    --tag-low-bg: #eceae4;
+    --bar-1: #b5522a;
+    --bar-2: #2a6e4f;
+    --bar-3: #2e5a8a;
+    --bar-4: #8a6e2e;
+    --bar-5: #6e2a5a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111110;
+      --bg-card: #1a1918;
+      --bg-inset: #201f1d;
+      --text: #e2dfd8;
+      --text-muted: #908a7e;
+      --text-dim: #635d52;
+      --accent: #d4734a;
+      --accent-light: #2a1c14;
+      --green: #5cb882;
+      --green-light: #142a1e;
+      --blue: #5a8ec4;
+      --blue-light: #14202e;
+      --border: #2e2c28;
+      --border-strong: #3e3b34;
+      --mono-bg: #1e1d1a;
+      --tag-high: #d4734a;
+      --tag-high-bg: #2a1c14;
+      --tag-mid: #5cb882;
+      --tag-mid-bg: #142a1e;
+      --tag-low: #908a7e;
+      --tag-low-bg: #201f1d;
+      --bar-1: #d4734a;
+      --bar-2: #5cb882;
+      --bar-3: #5a8ec4;
+      --bar-4: #c4a44a;
+      --bar-5: #b85ca0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111110;
+    --bg-card: #1a1918;
+    --bg-inset: #201f1d;
+    --text: #e2dfd8;
+    --text-muted: #908a7e;
+    --text-dim: #635d52;
+    --accent: #d4734a;
+    --accent-light: #2a1c14;
+    --green: #5cb882;
+    --green-light: #142a1e;
+    --blue: #5a8ec4;
+    --blue-light: #14202e;
+    --border: #2e2c28;
+    --border-strong: #3e3b34;
+    --mono-bg: #1e1d1a;
+    --tag-high: #d4734a;
+    --tag-high-bg: #2a1c14;
+    --tag-mid: #5cb882;
+    --tag-mid-bg: #142a1e;
+    --tag-low: #908a7e;
+    --tag-low-bg: #201f1d;
+    --bar-1: #d4734a;
+    --bar-2: #5cb882;
+    --bar-3: #5a8ec4;
+    --bar-4: #c4a44a;
+    --bar-5: #b85ca0;
+  }
+  :root[data-theme="light"] {
+    --bg: #f5f4f0;
+    --bg-card: #ffffff;
+    --bg-inset: #eceae4;
+    --text: #2c2923;
+    --text-muted: #7a7468;
+    --text-dim: #a09888;
+    --accent: #b5522a;
+    --accent-light: #f4e8e1;
+    --green: #2a6e4f;
+    --green-light: #e2f0e8;
+    --blue: #2e5a8a;
+    --blue-light: #e0eaf4;
+    --border: #ddd9d0;
+    --border-strong: #c5bfb4;
+    --mono-bg: #edebe5;
+    --tag-high: #b5522a;
+    --tag-high-bg: #f4e8e1;
+    --tag-mid: #2a6e4f;
+    --tag-mid-bg: #e2f0e8;
+    --tag-low: #7a7468;
+    --tag-low-bg: #eceae4;
+    --bar-1: #b5522a;
+    --bar-2: #2a6e4f;
+    --bar-3: #2e5a8a;
+    --bar-4: #8a6e2e;
+    --bar-5: #6e2a5a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    padding: 2rem 1.25rem 4rem;
+    max-width: 64rem;
+    margin: 0 auto;
+  }
+
+  /* ── HEADER ── */
+  .doc-header {
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  .doc-header .eyebrow {
+    font-family: 'Menlo', 'Consolas', 'DejaVu Sans Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.35rem;
+  }
+  .doc-header h1 {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-wrap: balance;
+    margin-bottom: 0.3rem;
+  }
+  .doc-header .meta {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+  .doc-header .meta span { margin-right: 1.5rem; }
+
+  /* ── SECTIONS ── */
+  .sect {
+    margin-bottom: 2.25rem;
+  }
+  .sect-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .sect-bar {
+    width: 3px;
+    height: 1rem;
+    border-radius: 1px;
+    flex-shrink: 0;
+  }
+  .sect-bar.a { background: var(--bar-1); }
+  .sect-bar.b { background: var(--bar-2); }
+  .sect-bar.c { background: var(--bar-3); }
+  .sect-bar.d { background: var(--bar-4); }
+  .sect-bar.e { background: var(--bar-5); }
+  .sect-label {
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  /* ── IDENTITY CARD ── */
+  .id-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 1rem 1.25rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem 2rem;
+  }
+  @media (max-width: 600px) { .id-card { grid-template-columns: 1fr; } }
+  .id-card .id-name {
+    font-family: Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    grid-column: 1 / -1;
+  }
+  .id-card .id-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .id-card .id-label {
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .id-card .id-val {
+    font-size: 0.82rem;
+    color: var(--text);
+  }
+
+  /* ── FREQUENCY TABLE ── */
+  .freq-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .freq-table th {
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-align: left;
+    padding: 0.4rem 0.6rem;
+    border-bottom: 2px solid var(--border-strong);
+    font-weight: 600;
+  }
+  .freq-table td {
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .freq-table tr:last-child td { border-bottom: none; }
+  .freq-table .rank {
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    width: 2rem;
+  }
+  .freq-bar {
+    display: inline-block;
+    height: 6px;
+    border-radius: 3px;
+    vertical-align: middle;
+    margin-right: 0.4rem;
+  }
+
+  /* ── TAGS ── */
+  .tag {
+    display: inline-block;
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.15em 0.45em;
+    border-radius: 2px;
+    vertical-align: middle;
+  }
+  .tag.high { background: var(--tag-high-bg); color: var(--tag-high); }
+  .tag.mid { background: var(--tag-mid-bg); color: var(--tag-mid); }
+  .tag.low { background: var(--tag-low-bg); color: var(--tag-low); }
+
+  /* ── GRID CARDS ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    gap: 0.5rem;
+  }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 0.75rem 0.9rem;
+  }
+  .card-label {
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.3rem;
+  }
+  .card-title {
+    font-family: Georgia, serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+  .card-body {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+  }
+  .card-body ul {
+    list-style: none;
+    padding: 0;
+  }
+  .card-body li {
+    padding-left: 0.8rem;
+    position: relative;
+    margin-bottom: 0.1rem;
+  }
+  .card-body li::before {
+    content: '·';
+    position: absolute;
+    left: 0;
+    color: var(--text-dim);
+  }
+
+  /* ── SIGNAL MATRIX ── */
+  .signal-row {
+    display: grid;
+    grid-template-columns: 8rem 1fr;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    align-items: start;
+  }
+  @media (max-width: 500px) { .signal-row { grid-template-columns: 1fr; } }
+  .signal-row:last-child { border-bottom: none; }
+  .signal-name {
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .signal-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  .signal-chip {
+    font-size: 0.72rem;
+    padding: 0.2em 0.5em;
+    border-radius: 2px;
+    background: var(--bg-inset);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  /* ── ROLE MATRIX ── */
+  .role-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: 0.5rem;
+  }
+  .role-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 0.6rem 0.75rem;
+  }
+  .role-id {
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.15rem;
+  }
+  .role-name {
+    font-family: Georgia, serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 0.15rem;
+  }
+  .role-desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  /* ── ARCH DIAGRAM ── */
+  .arch-layer {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 0.6rem 0.9rem;
+    margin-bottom: 0.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .arch-layer-tag {
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    min-width: 7rem;
+    font-weight: 700;
+  }
+  .arch-layer-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    font-size: 0.78rem;
+  }
+  .arch-node {
+    background: var(--bg-inset);
+    border: 1px solid var(--border);
+    padding: 0.2em 0.55em;
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 0.7rem;
+  }
+  .arch-node.human { border-left: 3px solid var(--bar-1); }
+  .arch-node.chef { border-left: 3px solid var(--bar-2); }
+  .arch-node.peer { border-left: 3px solid var(--bar-3); }
+  .arch-node.tool { border-left: 3px solid var(--bar-4); }
+  .arch-node.reg { border-left: 3px solid var(--bar-5); }
+
+  .scroll-x { overflow-x: auto; }
+
+  /* ── KG NODES ── */
+  .kg-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .kg-table th {
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-align: left;
+    padding: 0.35rem 0.5rem;
+    border-bottom: 2px solid var(--border-strong);
+    font-weight: 600;
+  }
+  .kg-table td {
+    padding: 0.35rem 0.5rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .kg-table .entity {
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+  .kg-table .rel {
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 0.75rem;
+    border-top: 2px solid var(--accent);
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+</style>
+
+<!-- ════════════════════════════════════════ HEADER ════════════════════════════════════════ -->
+<div class="doc-header">
+  <div class="eyebrow">NEXUS AI-OS · Seed Condensation</div>
+  <h1>Memory-Extraktion &amp; Scope-of-Work Synthese</h1>
+  <div class="meta">
+    <span>Quellen: ChatGPT ID02 (Business) + ID03 (Private)</span>
+    <span>Datum: 2026-07-14</span>
+    <span>Typ: Strategic Intelligence Document</span>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ IDENTITY ════════════════════════════════════════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar a"></div>
+    <span class="sect-label">Merged Identity</span>
+  </div>
+  <div class="id-card">
+    <div class="id-name">DI Dr.-techn. Julian Zotter</div>
+    <div class="id-field">
+      <span class="id-label">Rollen</span>
+      <span class="id-val">Zivilingenieur · Tragwerksplaner · Ingenieurkonsulent · Gerichtssachverständiger (Statik) · Prompt Engineer · AI System Architect · KI-Berater</span>
+    </div>
+    <div class="id-field">
+      <span class="id-label">Unternehmen</span>
+      <span class="id-val">ZOTTER CONSULT e.U. · ZOTTER LITSCHAUER ZT GmbH</span>
+    </div>
+    <div class="id-field">
+      <span class="id-label">Arbeitsstil</span>
+      <span class="id-val">Deterministisch · Faktenorientiert · Modular · Reproduzierbar · Iterativ · Low-Noise · Source-First</span>
+    </div>
+    <div class="id-field">
+      <span class="id-label">Hardware</span>
+      <span class="id-val">Lenovo Legion · NVIDIA RTX 3080 · CUDA</span>
+    </div>
+    <div class="id-field">
+      <span class="id-label">Output-Formate</span>
+      <span class="id-val">Markdown · JSON · JSONL · YAML · HTML · Python · Word · PDF · Executive Summary</span>
+    </div>
+    <div class="id-field">
+      <span class="id-label">Methodenkette</span>
+      <span class="id-val">Analyse → Strukturierung → Synthese → QA → Peer Review → Human Approval</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ SCOPE-OF-WORK TITLES ════════════════════════════════════════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar a"></div>
+    <span class="sect-label">Scope-of-Work Titles — Ranked by Frequenz &amp; Relevanz</span>
+  </div>
+  <div class="scroll-x">
+    <table class="freq-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Scope-of-Work</th>
+          <th>Freq</th>
+          <th>Signal</th>
+          <th>Kontext</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="rank">1</td>
+          <td><strong>NEXUS AI-OS Entwicklung</strong></td>
+          <td><span class="freq-bar" style="width:100%;background:var(--bar-1)"></span> 4/4</td>
+          <td><span class="tag high">Kern</span></td>
+          <td>Multi-LLM Orchestrierung, Registry-first, Governance-first, Audit-ready</td>
+        </tr>
+        <tr>
+          <td class="rank">2</td>
+          <td><strong>Tragwerksplanung &amp; Statik</strong></td>
+          <td><span class="freq-bar" style="width:100%;background:var(--bar-1)"></span> 4/4</td>
+          <td><span class="tag high">Kern</span></td>
+          <td>Holzbau, Stahlbau, Stahlbeton, Eurocodes, OIB</td>
+        </tr>
+        <tr>
+          <td class="rank">3</td>
+          <td><strong>Workflow-Automatisierung</strong></td>
+          <td><span class="freq-bar" style="width:85%;background:var(--bar-1)"></span> 3/4</td>
+          <td><span class="tag high">Kern</span></td>
+          <td>Workflow Registry, Pipeline-Design, Prozessautomatisierung</td>
+        </tr>
+        <tr>
+          <td class="rank">4</td>
+          <td><strong>Knowledge Management &amp; RAG</strong></td>
+          <td><span class="freq-bar" style="width:85%;background:var(--bar-1)"></span> 3/4</td>
+          <td><span class="tag high">Kern</span></td>
+          <td>Knowledge Graphs, Semantische Wissensobjekte, Master Knowledge Base</td>
+        </tr>
+        <tr>
+          <td class="rank">5</td>
+          <td><strong>Prompt Engineering</strong></td>
+          <td><span class="freq-bar" style="width:100%;background:var(--bar-2)"></span> 4/4</td>
+          <td><span class="tag mid">Hoch</span></td>
+          <td>Prompt Registry, T3N Meisterprompter, Z-Advisor GPT</td>
+        </tr>
+        <tr>
+          <td class="rank">6</td>
+          <td><strong>Python-Entwicklung</strong></td>
+          <td><span class="freq-bar" style="width:75%;background:var(--bar-2)"></span> 3/4</td>
+          <td><span class="tag mid">Hoch</span></td>
+          <td>Tools, Skripte, ML-Prototypen, Datenverarbeitung</td>
+        </tr>
+        <tr>
+          <td class="rank">7</td>
+          <td><strong>Technische Dokumentation</strong></td>
+          <td><span class="freq-bar" style="width:60%;background:var(--bar-2)"></span> 2/4</td>
+          <td><span class="tag mid">Hoch</span></td>
+          <td>Executive Reports, Peer Reviews, Spezifikationen</td>
+        </tr>
+        <tr>
+          <td class="rank">8</td>
+          <td><strong>Eurocode-Workflows</strong></td>
+          <td><span class="freq-bar" style="width:50%;background:var(--bar-3)"></span> 2/4</td>
+          <td><span class="tag mid">Hoch</span></td>
+          <td>Normkonforme Bemessung, Nachweisführung</td>
+        </tr>
+        <tr>
+          <td class="rank">9</td>
+          <td><strong>Dashboards &amp; HTML-Tools</strong></td>
+          <td><span class="freq-bar" style="width:50%;background:var(--bar-3)"></span> 2/4</td>
+          <td><span class="tag low">Mittel</span></td>
+          <td>Wissensdatenbanken, Visualisierung, interaktive Tools</td>
+        </tr>
+        <tr>
+          <td class="rank">10</td>
+          <td><strong>Deep Research &amp; Analyse</strong></td>
+          <td><span class="freq-bar" style="width:35%;background:var(--bar-3)"></span> 1/4</td>
+          <td><span class="tag low">Mittel</span></td>
+          <td>Faktenbasierte Recherche, Quellenbewertung</td>
+        </tr>
+        <tr>
+          <td class="rank">11</td>
+          <td><strong>Nachhaltigkeit &amp; Kreislaufwirtschaft</strong></td>
+          <td><span class="freq-bar" style="width:50%;background:var(--bar-3)"></span> 2/4</td>
+          <td><span class="tag low">Mittel</span></td>
+          <td>Hybridbau, BIM, nachhaltiges Bauen</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ KEY VALUES & MAIN GOALS ════════════════════════════════════════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar b"></div>
+    <span class="sect-label">Key Values &amp; Main Goals</span>
+  </div>
+  <div class="card-grid">
+    <div class="card" style="border-top: 2px solid var(--bar-1);">
+      <div class="card-label">Ziel #1 — System</div>
+      <div class="card-title">Produktionsreifes NEXUS AI-OS</div>
+      <div class="card-body">Deterministisches, auditierbares Multi-LLM-Betriebssystem. Registry-first, Governance-first, Object-centric. Zentrale Orchestrierungsebene für alle AI-Workflows.</div>
+    </div>
+    <div class="card" style="border-top: 2px solid var(--bar-2);">
+      <div class="card-label">Ziel #2 — Wissen</div>
+      <div class="card-title">Single Source of Truth</div>
+      <div class="card-body">Master Knowledge Base mit semantischen Wissensobjekten. Auditfähig, versioniert, graphbasiert. Prompt Registry + Workflow Registry als zentrale Steuerungseinheiten.</div>
+    </div>
+    <div class="card" style="border-top: 2px solid var(--bar-3);">
+      <div class="card-label">Ziel #3 — Engineering</div>
+      <div class="card-title">Engineering-Automatisierung</div>
+      <div class="card-body">Eurocode-konforme Workflows automatisieren. Tragwerksplanung mit AI-Unterstützung. Normkonforme Nachweisführung systematisieren.</div>
+    </div>
+    <div class="card" style="border-top: 2px solid var(--bar-4);">
+      <div class="card-label">Ziel #4 — Orchestrierung</div>
+      <div class="card-title">Multi-LLM-Orchestrierung</div>
+      <div class="card-body">Modell-übergreifendes System: GPT, Claude, Perplexity, Open-Source-LLMs koordiniert über zentrale Kommunikationsschnittstelle mit Rollendefinition und Approval-Kette.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ PROJEKTE ════════════════════════════════════════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar b"></div>
+    <span class="sect-label">Bekannte Projekte — Frequenz-Merge</span>
+  </div>
+  <div class="scroll-x">
+    <table class="freq-table">
+      <thead>
+        <tr><th>Projekt</th><th>Freq</th><th>Typ</th><th>Status / Beschreibung</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>NEXUS AI-OS</strong></td>
+          <td>4/4</td>
+          <td><span class="tag high">Hauptprojekt</span></td>
+          <td>Deterministic Multi-LLM Operating System — Registry-first, Audit-ready, Knowledge Graph</td>
+        </tr>
+        <tr>
+          <td><strong>Workflow Registry</strong></td>
+          <td>3/4</td>
+          <td><span class="tag high">Subsystem</span></td>
+          <td>Zentrale Registrierung aller Workflows, Versionierung, Wiederverwendung</td>
+        </tr>
+        <tr>
+          <td><strong>AEC AI OS</strong></td>
+          <td>2/4</td>
+          <td><span class="tag mid">Variante</span></td>
+          <td>Branchenspezifische NEXUS-Variante für Architecture, Engineering, Construction</td>
+        </tr>
+        <tr>
+          <td><strong>Z-Advisor GPT</strong></td>
+          <td>2/4</td>
+          <td><span class="tag mid">Produkt</span></td>
+          <td>Custom GPT für Engineering-Beratung</td>
+        </tr>
+        <tr>
+          <td><strong>T3N Meisterprompter</strong></td>
+          <td>2/4</td>
+          <td><span class="tag mid">Produkt</span></td>
+          <td>Prompt-Engineering Framework / Showcase</td>
+        </tr>
+        <tr>
+          <td><strong>Master Index</strong></td>
+          <td>2/4</td>
+          <td><span class="tag low">Subsystem</span></td>
+          <td>Zentrale Wissensindexierung, Single Source of Truth</td>
+        </tr>
+        <tr>
+          <td><strong>Prompt Registry</strong></td>
+          <td>1/4</td>
+          <td><span class="tag low">Subsystem</span></td>
+          <td>Versionierte Sammlung aller Prompt-Templates</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ SIGNAL MATRIX ════════════════════════════════════════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar c"></div>
+    <span class="sect-label">Signal-Matrix — Ontologien &amp; Kernkonzepte</span>
+  </div>
+
+  <div class="signal-row">
+    <div class="signal-name" style="color:var(--bar-1)">STRUKTUR</div>
+    <div class="signal-items">
+      <span class="signal-chip">Tragwerk</span>
+      <span class="signal-chip">Architektur</span>
+      <span class="signal-chip">Systematik</span>
+      <span class="signal-chip">Hierarchie</span>
+      <span class="signal-chip">Modularität</span>
+      <span class="signal-chip">Schichtung</span>
+      <span class="signal-chip">Registry</span>
+    </div>
+  </div>
+  <div class="signal-row">
+    <div class="signal-name" style="color:var(--bar-2)">WISSEN</div>
+    <div class="signal-items">
+      <span class="signal-chip">Semantik</span>
+      <span class="signal-chip">Ontologie</span>
+      <span class="signal-chip">Knowledge Graph</span>
+      <span class="signal-chip">RAG</span>
+      <span class="signal-chip">Embedding</span>
+      <span class="signal-chip">Indexierung</span>
+      <span class="signal-chip">Wissensobjekt</span>
+    </div>
+  </div>
+  <div class="signal-row">
+    <div class="signal-name" style="color:var(--bar-3)">AUTOMATION</div>
+    <div class="signal-items">
+      <span class="signal-chip">Workflow</span>
+      <span class="signal-chip">Pipeline</span>
+      <span class="signal-chip">Orchestrierung</span>
+      <span class="signal-chip">Agent</span>
+      <span class="signal-chip">Trigger</span>
+      <span class="signal-chip">Scheduler</span>
+      <span class="signal-chip">Batch</span>
+    </div>
+  </div>
+  <div class="signal-row">
+    <div class="signal-name" style="color:var(--bar-4)">GOVERNANCE</div>
+    <div class="signal-items">
+      <span class="signal-chip">Audit</span>
+      <span class="signal-chip">QA</span>
+      <span class="signal-chip">Peer Review</span>
+      <span class="signal-chip">Approval</span>
+      <span class="signal-chip">Compliance</span>
+      <span class="signal-chip">Versionierung</span>
+      <span class="signal-chip">Traceability</span>
+    </div>
+  </div>
+  <div class="signal-row">
+    <div class="signal-name" style="color:var(--bar-5)">NORMEN</div>
+    <div class="signal-items">
+      <span class="signal-chip">Eurocode</span>
+      <span class="signal-chip">OIB</span>
+      <span class="signal-chip">EN 1990–1999</span>
+      <span class="signal-chip">ÖNORM</span>
+      <span class="signal-chip">BIM/IFC</span>
+      <span class="signal-chip">Standards</span>
+    </div>
+  </div>
+  <div class="signal-row">
+    <div class="signal-name" style="color:var(--accent)">DETERMIN.</div>
+    <div class="signal-items">
+      <span class="signal-chip">Reproduzierbar</span>
+      <span class="signal-chip">Faktenbasiert</span>
+      <span class="signal-chip">Quellentreu</span>
+      <span class="signal-chip">Falsifizierbar</span>
+      <span class="signal-chip">Nachvollziehbar</span>
+      <span class="signal-chip">Low-Noise</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ ROLLEN-MATRIX: EXPERTEN ════════════════════════════════════════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar d"></div>
+    <span class="sect-label">Rollen-Matrix — MOE-Experten, Naturwissenschaftler, Philosophen</span>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-label">Structural Engineering</div>
+      <div class="card-body">
+        <ul>
+          <li><strong>Fazlur Khan</strong> — Hochhausstatik, Tube-Systeme</li>
+          <li><strong>Frei Otto</strong> — Leichtbau, Membranstrukturen</li>
+          <li><strong>Konrad Bergmeister</strong> — Brückenbau, Eurocodes AT</li>
+          <li><strong>Julius Natterer</strong> — Holzbau-Innovation</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">AI / LLM / Systeme</div>
+      <div class="card-body">
+        <ul>
+          <li><strong>Andrej Karpathy</strong> — LLM from Scratch, nanoGPT</li>
+          <li><strong>Yann LeCun</strong> — Deep Learning, Meta AI</li>
+          <li><strong>Andrew Ng</strong> — AI Praxis, Agentic Workflows</li>
+          <li><strong>Harrison Chase</strong> — LangChain, Orchestrierung</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Wissensmanagement</div>
+      <div class="card-body">
+        <ul>
+          <li><strong>Vannevar Bush</strong> — Memex, Proto-Knowledge-Graph</li>
+          <li><strong>Tim Berners-Lee</strong> — Semantic Web, Linked Data</li>
+          <li><strong>Doug Engelbart</strong> — Augmenting Human Intellect</li>
+          <li><strong>Niklas Luhmann</strong> — Zettelkasten, Systemtheorie</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Naturwissenschaft &amp; Informationstheorie</div>
+      <div class="card-body">
+        <ul>
+          <li><strong>Claude Shannon</strong> — Informationstheorie, Entropie</li>
+          <li><strong>Alan Turing</strong> — Berechenbarkeit, Turing-Test</li>
+          <li><strong>Norbert Wiener</strong> — Kybernetik, Regelkreise</li>
+          <li><strong>John von Neumann</strong> — Rechnerarchitektur, Spieltheorie</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Philosophie &amp; Epistemologie</div>
+      <div class="card-body">
+        <ul>
+          <li><strong>Karl Popper</strong> — Falsifikation, Kritischer Rationalismus</li>
+          <li><strong>Ludwig Wittgenstein</strong> — Sprachspiele, Grenzen der Sprache</li>
+          <li><strong>Heinz von Foerster</strong> — Kybernetik 2. Ordnung, Konstruktivismus</li>
+          <li><strong>Gregory Bateson</strong> — Ökologie des Geistes, Metakommunikation</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Systemdenken &amp; Engineering-Methodik</div>
+      <div class="card-body">
+        <ul>
+          <li><strong>W. Edwards Deming</strong> — PDCA, Qualitätsmanagement</li>
+          <li><strong>Herbert Simon</strong> — Bounded Rationality, Sciences of the Artificial</li>
+          <li><strong>Stafford Beer</strong> — Viable System Model, Management-Kybernetik</li>
+          <li><strong>Christopher Alexander</strong> — Pattern Language, Design Patterns</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ MULTI-AGENT ARCHITEKTUR ════════════════════════════════════════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar e"></div>
+    <span class="sect-label">Multi-Agent System — NEXUS Control Tower</span>
+  </div>
+
+  <div class="arch-layer" style="border-left: 3px solid var(--bar-1);">
+    <div class="arch-layer-tag" style="color:var(--bar-1)">Layer 0 — Human</div>
+    <div class="arch-layer-content">
+      <span class="arch-node human">JULIAN := Besteller + Entscheider</span>
+      <span class="arch-node human">Human Approval Gate</span>
+      <span class="arch-node human">Final Authority</span>
+    </div>
+  </div>
+
+  <div class="arch-layer" style="border-left: 3px solid var(--bar-2);">
+    <div class="arch-layer-tag" style="color:var(--bar-2)">Layer 1 — Chef-LLM</div>
+    <div class="arch-layer-content">
+      <span class="arch-node chef">ORCHESTRATOR (Claude/GPT-4)</span>
+      <span class="arch-node chef">Task Decomposition</span>
+      <span class="arch-node chef">Delegation &amp; Routing</span>
+      <span class="arch-node chef">Synthesis</span>
+    </div>
+  </div>
+
+  <div class="arch-layer" style="border-left: 3px solid var(--bar-3);">
+    <div class="arch-layer-tag" style="color:var(--bar-3)">Layer 2 — Peer Review</div>
+    <div class="arch-layer-content">
+      <span class="arch-node peer">REVIEW-LLM-A (Claude)</span>
+      <span class="arch-node peer">REVIEW-LLM-B (GPT)</span>
+      <span class="arch-node peer">Cross-Validation</span>
+      <span class="arch-node peer">Adversarial Check</span>
+    </div>
+  </div>
+
+  <div class="arch-layer" style="border-left: 3px solid var(--bar-4);">
+    <div class="arch-layer-tag" style="color:var(--bar-4)">Layer 3 — Spezialisten</div>
+    <div class="arch-layer-content">
+      <span class="arch-node tool">PERPLEXITY (Research)</span>
+      <span class="arch-node tool">CLAUDE (Analysis/Code)</span>
+      <span class="arch-node tool">GPT (Creative/General)</span>
+      <span class="arch-node tool">LOCAL-LLM (Private/CUDA)</span>
+      <span class="arch-node tool">GEMINI (Multimodal)</span>
+    </div>
+  </div>
+
+  <div class="arch-layer" style="border-left: 3px solid var(--bar-5);">
+    <div class="arch-layer-tag" style="color:var(--bar-5)">Layer 4 — Registries</div>
+    <div class="arch-layer-content">
+      <span class="arch-node reg">Workflow Registry</span>
+      <span class="arch-node reg">Prompt Registry</span>
+      <span class="arch-node reg">Knowledge Base</span>
+      <span class="arch-node reg">Master Index</span>
+      <span class="arch-node reg">Audit Log</span>
+    </div>
+  </div>
+
+  <div style="margin-top: 1rem;">
+    <div class="card-label">Grundregeln der Zusammenarbeit</div>
+    <div class="scroll-x">
+      <table class="freq-table" style="margin-top:0.4rem;">
+        <thead>
+          <tr><th>Regel</th><th>Beschreibung</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>R1 — Human Authority</strong></td><td>Kein Agent handelt ohne explizites oder delegiertes Human Approval. Der User ist Besteller und Entscheider.</td></tr>
+          <tr><td><strong>R2 — Registry First</strong></td><td>Jeder Workflow, Prompt und jedes Wissensobjekt wird registriert, versioniert und ist rückverfolgbar.</td></tr>
+          <tr><td><strong>R3 — Peer Review</strong></td><td>Kritische Outputs durchlaufen Cross-Validation durch mindestens ein unabhängiges LLM.</td></tr>
+          <tr><td><strong>R4 — Determinismus</strong></td><td>Gleiche Eingabe → gleiche Struktur. Stochastische Varianz wird dokumentiert, nie verschwiegen.</td></tr>
+          <tr><td><strong>R5 — Source-First</strong></td><td>Jede Behauptung mit Quelle. Keine Halluzination toleriert. Unsicherheit wird explizit markiert.</td></tr>
+          <tr><td><strong>R6 — Audit Trail</strong></td><td>Jede Agent-Aktion, jeder Entscheidungspfad wird geloggt. Nachvollziehbarkeit ist nicht optional.</td></tr>
+          <tr><td><strong>R7 — Rollenklarheit</strong></td><td>Jeder Agent hat eine definierte Rolle, Kompetenzbereich und Eskalationspfad. Keine Kompetenzüberschreitung.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ KNOWLEDGE GRAPH ════════════════════════════════════════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar c"></div>
+    <span class="sect-label">Knowledge Graph — Kernentitäten &amp; Relationen</span>
+  </div>
+  <div class="scroll-x">
+    <table class="kg-table">
+      <thead>
+        <tr><th>Subjekt</th><th>Relation</th><th>Objekt</th><th>Typ</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="entity">Julian Zotter</td><td class="rel">betreibt</td><td>NEXUS AI-OS</td><td><span class="tag high">System</span></td></tr>
+        <tr><td class="entity">Julian Zotter</td><td class="rel">leitet</td><td>ZOTTER CONSULT e.U.</td><td><span class="tag mid">Org</span></td></tr>
+        <tr><td class="entity">Julian Zotter</td><td class="rel">leitet</td><td>ZOTTER LITSCHAUER ZT GmbH</td><td><span class="tag mid">Org</span></td></tr>
+        <tr><td class="entity">NEXUS AI-OS</td><td class="rel">enthält</td><td>Workflow Registry</td><td><span class="tag low">Subsystem</span></td></tr>
+        <tr><td class="entity">NEXUS AI-OS</td><td class="rel">enthält</td><td>Prompt Registry</td><td><span class="tag low">Subsystem</span></td></tr>
+        <tr><td class="entity">NEXUS AI-OS</td><td class="rel">enthält</td><td>Master Knowledge Base</td><td><span class="tag low">Subsystem</span></td></tr>
+        <tr><td class="entity">NEXUS AI-OS</td><td class="rel">orchestriert</td><td>Claude, GPT, Perplexity, Local-LLM</td><td><span class="tag high">Agent</span></td></tr>
+        <tr><td class="entity">NEXUS AI-OS</td><td class="rel">implementiert</td><td>Governance + Audit Trail</td><td><span class="tag mid">Prinzip</span></td></tr>
+        <tr><td class="entity">AEC AI OS</td><td class="rel">spezialisiert</td><td>NEXUS AI-OS</td><td><span class="tag mid">Variante</span></td></tr>
+        <tr><td class="entity">Z-Advisor GPT</td><td class="rel">instanz_von</td><td>Prompt Registry</td><td><span class="tag low">Produkt</span></td></tr>
+        <tr><td class="entity">Tragwerksplanung</td><td class="rel">nutzt</td><td>Eurocodes, OIB, ÖNORM</td><td><span class="tag mid">Norm</span></td></tr>
+        <tr><td class="entity">Tragwerksplanung</td><td class="rel">automatisiert_durch</td><td>NEXUS AI-OS Workflows</td><td><span class="tag high">Ziel</span></td></tr>
+        <tr><td class="entity">Knowledge Base</td><td class="rel">basiert_auf</td><td>Knowledge Graph + RAG</td><td><span class="tag mid">Technik</span></td></tr>
+        <tr><td class="entity">Peer Review</td><td class="rel">validiert</td><td>Agent-Output</td><td><span class="tag mid">QA</span></td></tr>
+        <tr><td class="entity">Human Approval</td><td class="rel">autorisiert</td><td>Alle kritischen Entscheidungen</td><td><span class="tag high">Gate</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ PROBLEMSTELLUNGEN ════════════════════════════════════════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar a"></div>
+    <span class="sect-label">Kernproblemstellungen &amp; Lösungsansätze</span>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-label">Problem</div>
+      <div class="card-title">LLM-Silos</div>
+      <div class="card-body">Wissen fragmentiert über GPT, Claude, Perplexity. Kein gemeinsamer State, keine Übergabe, kein Audit.
+        <br><strong style="color:var(--green)">→ Lösung:</strong> NEXUS als zentrale Orchestrierungsebene mit shared Knowledge Base.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Problem</div>
+      <div class="card-title">Nicht-Reproduzierbarkeit</div>
+      <div class="card-body">LLM-Outputs sind stochastisch. Gleiche Frage → andere Antwort. Keine Versionierung.
+        <br><strong style="color:var(--green)">→ Lösung:</strong> Deterministische Pipelines, Prompt Registry, Audit Trail.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Problem</div>
+      <div class="card-title">Memory-Verlust</div>
+      <div class="card-body">Chat-Kontext geht verloren. Personal Memories sind opak, unvollständig, nicht exportierbar.
+        <br><strong style="color:var(--green)">→ Lösung:</strong> Externe Knowledge Base, explizite Memory-Extraktion (dieses Dokument).</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Problem</div>
+      <div class="card-title">Fehlende Qualitätssicherung</div>
+      <div class="card-body">Ein einzelnes LLM halluziniert unbemerkt. Kein eingebauter Review-Mechanismus.
+        <br><strong style="color:var(--green)">→ Lösung:</strong> Multi-LLM Peer Review, Adversarial Checks, Human Approval Gate.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Problem</div>
+      <div class="card-title">Manuelle Workflow-Wiederholung</div>
+      <div class="card-body">Gleiche Abläufe werden immer wieder manuell neu aufgesetzt, statt einmal definiert und registriert.
+        <br><strong style="color:var(--green)">→ Lösung:</strong> Workflow Registry mit versionierten, parametrisierbaren Templates.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Problem</div>
+      <div class="card-title">Normkonformität &amp; Haftung</div>
+      <div class="card-body">AI-generierte Tragwerksberechnungen brauchen nachvollziehbare, normkonforme Nachweiskette.
+        <br><strong style="color:var(--green)">→ Lösung:</strong> Eurocode-Workflows mit Traceability, Quellenverweis, Prüfprotokoll.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ NEXUS PROPERTIES ════════════════════════════════════════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar e"></div>
+    <span class="sect-label">NEXUS AI-OS — Merged Properties</span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:0.35rem;">
+    <span class="signal-chip" style="border-left:3px solid var(--bar-1)">deterministic</span>
+    <span class="signal-chip" style="border-left:3px solid var(--bar-1)">multi-LLM</span>
+    <span class="signal-chip" style="border-left:3px solid var(--bar-2)">registry-first</span>
+    <span class="signal-chip" style="border-left:3px solid var(--bar-2)">governance-first</span>
+    <span class="signal-chip" style="border-left:3px solid var(--bar-3)">audit-ready</span>
+    <span class="signal-chip" style="border-left:3px solid var(--bar-3)">object-centric</span>
+    <span class="signal-chip" style="border-left:3px solid var(--bar-4)">knowledge-graph</span>
+    <span class="signal-chip" style="border-left:3px solid var(--bar-4)">human-approval</span>
+    <span class="signal-chip" style="border-left:3px solid var(--bar-5)">reproducible</span>
+    <span class="signal-chip" style="border-left:3px solid var(--bar-5)">source-first</span>
+  </div>
+</div>
+
+<footer>
+  <span>NEXUS SEED CONDENSATION v1.0</span>
+  <span>Quellen: ChatGPT Memory ID02 (Business) + ID03 (Private) — 4 Dateien semantisch gemergt</span>
+</footer>
