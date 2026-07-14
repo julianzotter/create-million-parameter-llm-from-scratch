@@ -1,0 +1,548 @@
+<title>Glossary — LLM from Scratch</title>
+<style>
+  @font-face {
+    font-family: 'Mono';
+    src: local('SF Mono'), local('Menlo'), local('Consolas'), local('DejaVu Sans Mono');
+  }
+
+  :root {
+    --bg: #fafaf8;
+    --bg-card: #ffffff;
+    --text: #1a1a1a;
+    --text-muted: #5c5c5c;
+    --accent: #2d5a27;
+    --accent-light: #e8f0e6;
+    --border: #e2e0db;
+    --tag-bg: #f0ede8;
+    --tag-text: #6b6459;
+    --section-bar: #2d5a27;
+    --shadow: 0 1px 3px rgba(0,0,0,0.04);
+    --code-bg: #f4f2ed;
+    --code-text: #8b4513;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141413;
+      --bg-card: #1c1c1a;
+      --text: #e5e4df;
+      --text-muted: #9a9890;
+      --accent: #6fbf65;
+      --accent-light: #1e2a1c;
+      --border: #2e2d2a;
+      --tag-bg: #27261f;
+      --tag-text: #a09a8c;
+      --section-bar: #6fbf65;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3);
+      --code-bg: #22211c;
+      --code-text: #d4a06a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141413;
+    --bg-card: #1c1c1a;
+    --text: #e5e4df;
+    --text-muted: #9a9890;
+    --accent: #6fbf65;
+    --accent-light: #1e2a1c;
+    --border: #2e2d2a;
+    --tag-bg: #27261f;
+    --tag-text: #a09a8c;
+    --section-bar: #6fbf65;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3);
+    --code-bg: #22211c;
+    --code-text: #d4a06a;
+  }
+  :root[data-theme="light"] {
+    --bg: #fafaf8;
+    --bg-card: #ffffff;
+    --text: #1a1a1a;
+    --text-muted: #5c5c5c;
+    --accent: #2d5a27;
+    --accent-light: #e8f0e6;
+    --border: #e2e0db;
+    --tag-bg: #f0ede8;
+    --tag-text: #6b6459;
+    --section-bar: #2d5a27;
+    --shadow: 0 1px 3px rgba(0,0,0,0.04);
+    --code-bg: #f4f2ed;
+    --code-text: #8b4513;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Georgia', 'Times New Roman', serif;
+    line-height: 1.6;
+    padding: 2rem 1.25rem 4rem;
+    max-width: 52rem;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--border);
+  }
+
+  header .eyebrow {
+    font-family: 'Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-wrap: balance;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+  }
+
+  header .subtitle {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  .section {
+    margin-bottom: 2.25rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-bar {
+    width: 3px;
+    height: 1.1rem;
+    background: var(--section-bar);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .section-title {
+    font-family: 'Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .entries {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .entry {
+    display: grid;
+    grid-template-columns: minmax(10rem, auto) 1fr;
+    gap: 0.75rem 1.25rem;
+    padding: 0.6rem 0.75rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-shadow: var(--shadow);
+    align-items: baseline;
+  }
+
+  @media (max-width: 540px) {
+    .entry {
+      grid-template-columns: 1fr;
+      gap: 0.15rem;
+    }
+  }
+
+  .term {
+    font-family: 'Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--code-text);
+    background: var(--code-bg);
+    padding: 0.15em 0.4em;
+    border-radius: 3px;
+    white-space: nowrap;
+    align-self: start;
+  }
+
+  .def {
+    font-size: 0.88rem;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .def code {
+    font-family: 'Mono', monospace;
+    font-size: 0.8rem;
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 0.1em 0.3em;
+    border-radius: 2px;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: 'Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    padding: 0.15em 0.45em;
+    border-radius: 2px;
+    margin-left: 0.4em;
+    vertical-align: middle;
+    position: relative;
+    top: -0.5px;
+  }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: 'Mono', monospace;
+  }
+</style>
+
+<header>
+  <div class="eyebrow">LLM from Scratch</div>
+  <h1>Glossary</h1>
+  <div class="subtitle">Begriffsdefinitionen zum Projekt und Workflow</div>
+</header>
+
+<!-- ======== DATEIFORMATE & TOOLS ======== -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-bar"></div>
+    <span class="section-title">Dateiformate &amp; Tools</span>
+  </div>
+  <div class="entries">
+
+    <div class="entry">
+      <span class="term">.ipynb</span>
+      <span class="def">Dateiendung für Jupyter Notebooks. Speichert Code, Ausgaben und Markdown in einem JSON-Format.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Notebook</span>
+      <span class="def">Interaktives Dokument aus Code-Zellen, die einzeln ausgeführt werden können. Standard-Tool für explorative Datenarbeit und Prototyping.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Jupyter Notebook</span>
+      <span class="def">Open-Source-Webanwendung zum Erstellen und Ausführen von Notebooks. Unterstützt Python, R und weitere Sprachen.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Colab Link</span>
+      <span class="def">URL zu Google Colaboratory — gehostete Jupyter-Umgebung mit kostenlosem GPU-Zugang. Ermöglicht Ausführung im Browser ohne lokale Installation.</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ======== GIT & VERSIONIERUNG ======== -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-bar"></div>
+    <span class="section-title">Git &amp; Versionierung</span>
+  </div>
+  <div class="entries">
+
+    <div class="entry">
+      <span class="term">Initial Commit</span>
+      <span class="def">Der erste Commit in einem Git-Repository. Legt die initiale Dateistruktur an.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Recreate Pattern</span>
+      <span class="def">Anti-Pattern: Datei löschen und im nächsten Commit neu erstellen, statt sie direkt zu editieren. Bläht die Git-History unnötig auf.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">.gitignore</span>
+      <span class="def">Konfigurationsdatei, die festlegt, welche Dateien/Ordner Git ignorieren soll (z.&nbsp;B. Build-Artefakte, Secrets).</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">__pycache__</span>
+      <span class="def">Von Python automatisch erzeugter Ordner mit kompiliertem Bytecode (<code>.pyc</code>). Gehört nicht ins Repository.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">.ipynb_checkpoints</span>
+      <span class="def">Auto-Save-Ordner von Jupyter. Enthält Sicherungskopien des Notebooks. Sollte per <code>.gitignore</code> ausgeschlossen werden.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">.pyc</span>
+      <span class="def">Kompilierter Python-Bytecode. Wird zur Laufzeit erzeugt und ist plattformspezifisch — nie committen.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Virtual Environment</span>
+      <span class="def">Isolierte Python-Umgebung (<code>venv</code>, <code>conda</code>) mit eigenen Paketen. Der Ordner (oft <code>.venv/</code>) gehört in die <code>.gitignore</code>.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">License File</span>
+      <span class="def">Datei im Repo-Root (z.&nbsp;B. <code>LICENSE</code>), die festlegt, unter welchen Bedingungen der Code genutzt werden darf (MIT, Apache, GPL etc.).</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Open-Source Projekt</span>
+      <span class="def">Software mit öffentlich einsehbarem Quellcode und einer Lizenz, die Nutzung, Änderung und Weitergabe erlaubt.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Single Branch</span>
+      <span class="def">Alle Commits liegen auf einem einzigen Branch (meist <code>main</code>). Einfach, aber ohne Isolation für parallele Arbeitsströme.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Feature Branches</span>
+      <span class="def">Separate Branches für einzelne Features oder Fixes. Werden nach Fertigstellung per Pull Request in den Hauptbranch gemergt.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Tags</span>
+      <span class="def">Benannte Markierungen auf einem Commit — typisch für Releases (<code>v1.0</code>, <code>v2.1</code>). Unveränderlich, im Gegensatz zu Branches.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Churn</span>
+      <span class="def">Häufiges Ändern, Löschen und Neuerstellen derselben Dateien. Zeichen eines unstrukturierten Workflows.</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ======== PIPELINE & DATEN ======== -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-bar"></div>
+    <span class="section-title">Pipeline &amp; Daten</span>
+  </div>
+  <div class="entries">
+
+    <div class="entry">
+      <span class="term">Workflow</span>
+      <span class="def">Definierte Abfolge von Arbeitsschritten — hier: Daten laden → Tokenisieren → Trainieren → Evaluieren → Generieren.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Wiederverwendbare Pipeline</span>
+      <span class="def">Modularer, konfigurierbarer Ablauf, der auf verschiedene Datensätze und Aufgaben angewendet werden kann, statt nur einmal hardcoded zu funktionieren.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Daten-Pipeline</span>
+      <span class="def">Die Kette von Datenverarbeitung: Quelle laden → bereinigen → tokenisieren → in Batches aufteilen → an das Modell übergeben.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Hardcoded</span>
+      <span class="def">Werte direkt im Code festgeschrieben statt über Konfiguration steuerbar. Erschwert Wiederverwendung und Anpassung.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">TinyShakespeare</span>
+      <span class="def">Kleiner Textdatensatz (~1&nbsp;Mio. Zeichen) aus Shakespeare-Werken. Standard-Benchmark für character-level Sprachmodelle, populär durch Andrej Karpathy.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Train/Val/Test-Split</span>
+      <span class="def">Aufteilung der Daten in drei Mengen: Training (Lernen), Validation (Hyperparameter-Tuning), Test (finale Bewertung). Typisch: 80/10/10.</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ======== TOKENISIERUNG ======== -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-bar"></div>
+    <span class="section-title">Tokenisierung</span>
+  </div>
+  <div class="entries">
+
+    <div class="entry">
+      <span class="term">Tokenizer</span>
+      <span class="def">Wandelt Rohtext in numerische Token um, die das Modell verarbeiten kann. Umgekehrt: Token → Text (Decoding).</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Char-Level</span>
+      <span class="def">Tokenisierung auf Zeichenebene — jeder Buchstabe ist ein Token. Einfach, aber großes Vokabular relativ zur Informationsdichte.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">BPE</span>
+      <span class="def"><em>Byte Pair Encoding.</em> Algorithmus, der häufige Zeichenpaare iterativ zu neuen Token zusammenfasst. Balance zwischen Char-Level und Wort-Level.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">SentencePiece</span>
+      <span class="def">Google-Bibliothek für sprachunabhängige Tokenisierung (BPE oder Unigram). Arbeitet direkt auf Rohtext ohne Vorverarbeitung.</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ======== MODELL-ARCHITEKTUR ======== -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-bar"></div>
+    <span class="section-title">Modell-Architektur</span>
+  </div>
+  <div class="entries">
+
+    <div class="entry">
+      <span class="term">Modell-Architektur</span>
+      <span class="def">Die Gesamtstruktur eines neuronalen Netzes: Schichten, Verbindungen, Normalisierungen und Aktivierungsfunktionen.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">RMSNorm</span>
+      <span class="def"><em>Root Mean Square Normalization.</em> Vereinfachte Layer-Normalisierung ohne Mittelwert-Subtraktion. 7–64% schneller als LayerNorm bei vergleichbarer Qualität.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">RoPE</span>
+      <span class="def"><em>Rotary Position Embedding.</em> Kodiert Tokenpositionen durch Rotation der Embedding-Vektoren. Relative Abstände werden implizit erfasst.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">SwiGLU</span>
+      <span class="def"><em>Swish-Gated Linear Unit.</em> Aktivierungsfunktion, die Swish mit einem Gate-Mechanismus kombiniert. Ersetzt ReLU in LLaMA für bessere Expressivität.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">LlamaBlock</span>
+      <span class="def">Ein einzelner Transformer-Block im LLaMA-Stil: RMSNorm → Multi-Head Attention (mit RoPE) → RMSNorm → FFN (mit SwiGLU), jeweils mit Residual-Verbindung.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Llama</span>
+      <span class="def">Das finale Modell: Embedding + N gestapelte LlamaBlocks + Output-FFN. Im Projekt: 4 Schichten, 8 Attention-Heads, ~2,3&nbsp;Mio. Parameter.</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ======== TRAINING ======== -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-bar"></div>
+    <span class="section-title">Training</span>
+  </div>
+  <div class="entries">
+
+    <div class="entry">
+      <span class="term">Training-Loop</span>
+      <span class="def">Die Schleife, die das Modell trainiert: Batch laden → Forward Pass → Loss berechnen → Backward Pass → Gewichte updaten. Wiederholen über N Epochen.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">train()</span>
+      <span class="def">Die zentrale Trainingsfunktion im Projekt. Nimmt Modell, Optimizer und optional Scheduler entgegen und führt den Training-Loop aus.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Generisch</span>
+      <span class="def">Allgemein gehalten, nicht an einen spezifischen Anwendungsfall gebunden. Ziel bei der Generalisierung des Workflows.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Checkpointing</span>
+      <span class="def">Regelmäßiges Speichern des Modellzustands (Gewichte, Optimizer-State) während des Trainings. Ermöglicht Fortsetzung nach Abbruch.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Early Stopping</span>
+      <span class="def">Training automatisch beenden, wenn der Validation Loss nicht mehr sinkt. Verhindert Overfitting und spart Rechenzeit.</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ======== EVALUATION ======== -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-bar"></div>
+    <span class="section-title">Evaluation</span>
+  </div>
+  <div class="entries">
+
+    <div class="entry">
+      <span class="term">evaluate_loss()</span>
+      <span class="def">Funktion im Projekt, die den mittleren Loss über 10 Batches für Train- und Val-Split berechnet — ohne Gradienten (<code>@torch.no_grad</code>).</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">BLEU</span>
+      <span class="def"><em>Bilingual Evaluation Understudy.</em> Metrik zum Vergleich von generiertem Text mit Referenztext. Misst n-Gram-Überlappung (0–1, höher = besser).</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ======== INFERENZ & SAMPLING ======== -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-bar"></div>
+    <span class="section-title">Inferenz &amp; Sampling</span>
+  </div>
+  <div class="entries">
+
+    <div class="entry">
+      <span class="term">Inference</span>
+      <span class="def">Das trainierte Modell anwenden, um neuen Text zu erzeugen. Kein Lernen — nur Forward Pass und Token-Auswahl.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Sampling-Strategien</span>
+      <span class="def">Methoden zur Token-Auswahl bei der Textgenerierung. Steuern die Balance zwischen Kreativität und Kohärenz.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Temperature</span>
+      <span class="def">Skalierungsfaktor für Logits vor Softmax. Niedrig (z.&nbsp;B. 0.2) → deterministisch/sicher. Hoch (z.&nbsp;B. 1.5) → zufällig/kreativ.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Top-k</span>
+      <span class="def">Nur die k wahrscheinlichsten Token werden für das Sampling zugelassen. Rest wird auf 0 gesetzt. Typisch: k=40–100.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Top-p</span>
+      <span class="def"><em>Nucleus Sampling.</em> Token kumulativ nach Wahrscheinlichkeit sortiert, bis die Summe p erreicht (z.&nbsp;B. 0.9). Dynamischer als Top-k.</span>
+    </div>
+
+    <div class="entry">
+      <span class="term">Penalties</span>
+      <span class="def">Strafen auf bereits generierte Token, um Wiederholungen zu reduzieren. Varianten: <em>Repetition Penalty</em> (auf wiederholte Token), <em>Frequency Penalty</em> (proportional zur Häufigkeit), <em>Presence Penalty</em> (binär: kam vor oder nicht).</span>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  35 Begriffe · Projekt: create-million-parameter-llm-from-scratch
+</footer>
