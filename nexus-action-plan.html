@@ -1,0 +1,538 @@
+<title>NEXUS Aktionsplan — Bottom-Up Implementation</title>
+<style>
+  :root {
+    --bg: #f5f4f0; --bg-card: #ffffff; --bg-inset: #eceae4;
+    --text: #2c2923; --text-muted: #7a7468; --text-dim: #a09888;
+    --accent: #b5522a; --accent-light: #f4e8e1;
+    --green: #2a6e4f; --green-light: #e2f0e8; --green-bright: #3a9e6f;
+    --red: #a63d2f; --red-light: #f4e2de;
+    --blue: #2e5a8a; --blue-light: #e0eaf4;
+    --amber: #8a6e2e; --amber-light: #f4eee0;
+    --purple: #6e2a5a; --purple-light: #f0e2ee;
+    --border: #ddd9d0; --border-strong: #c5bfb4; --mono-bg: #edebe5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111110; --bg-card: #1a1918; --bg-inset: #201f1d;
+      --text: #e2dfd8; --text-muted: #908a7e; --text-dim: #635d52;
+      --accent: #d4734a; --accent-light: #2a1c14;
+      --green: #5cb882; --green-light: #142a1e; --green-bright: #6ed49a;
+      --red: #d45a4a; --red-light: #2a1410;
+      --blue: #5a8ec4; --blue-light: #14202e;
+      --amber: #c4a44a; --amber-light: #2a2414;
+      --purple: #b85ca0; --purple-light: #2a142a;
+      --border: #2e2c28; --border-strong: #3e3b34; --mono-bg: #1e1d1a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111110; --bg-card: #1a1918; --bg-inset: #201f1d;
+    --text: #e2dfd8; --text-muted: #908a7e; --text-dim: #635d52;
+    --accent: #d4734a; --accent-light: #2a1c14;
+    --green: #5cb882; --green-light: #142a1e; --green-bright: #6ed49a;
+    --red: #d45a4a; --red-light: #2a1410;
+    --blue: #5a8ec4; --blue-light: #14202e;
+    --amber: #c4a44a; --amber-light: #2a2414;
+    --purple: #b85ca0; --purple-light: #2a142a;
+    --border: #2e2c28; --border-strong: #3e3b34; --mono-bg: #1e1d1a;
+  }
+  :root[data-theme="light"] {
+    --bg: #f5f4f0; --bg-card: #ffffff; --bg-inset: #eceae4;
+    --text: #2c2923; --text-muted: #7a7468; --text-dim: #a09888;
+    --accent: #b5522a; --accent-light: #f4e8e1;
+    --green: #2a6e4f; --green-light: #e2f0e8; --green-bright: #3a9e6f;
+    --red: #a63d2f; --red-light: #f4e2de;
+    --blue: #2e5a8a; --blue-light: #e0eaf4;
+    --amber: #8a6e2e; --amber-light: #f4eee0;
+    --purple: #6e2a5a; --purple-light: #f0e2ee;
+    --border: #ddd9d0; --border-strong: #c5bfb4; --mono-bg: #edebe5;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 0.875rem; line-height: 1.55;
+    padding: 2rem 1.25rem 4rem; max-width: 64rem; margin: 0 auto;
+  }
+
+  .doc-header { border-bottom: 2px solid var(--green); padding-bottom: 1.25rem; margin-bottom: 2rem; }
+  .doc-header .eyebrow {
+    font-family: 'Menlo','Consolas',monospace; font-size: 0.65rem;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--green); margin-bottom: 0.35rem;
+  }
+  .doc-header h1 {
+    font-family: Georgia, serif; font-size: 1.5rem;
+    font-weight: 700; line-height: 1.2; text-wrap: balance; margin-bottom: 0.3rem;
+  }
+  .doc-header .meta { font-size: 0.78rem; color: var(--text-muted); }
+
+  .principle-box {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-left: 4px solid var(--green); padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .principle-box .title {
+    font-family: Georgia, serif; font-size: 1rem; font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+  .principle-box .body { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
+  .principle-box .body strong { color: var(--text); }
+
+  .sect { margin-bottom: 2.5rem; }
+  .sect-head {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-bottom: 0.85rem; padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .sect-bar { width: 3px; height: 1rem; border-radius: 1px; flex-shrink: 0; }
+  .sect-label {
+    font-family: 'Menlo','Consolas',monospace; font-size: 0.68rem;
+    letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; color: var(--text-muted);
+  }
+
+  .tag {
+    display: inline-block; font-family: 'Menlo','Consolas',monospace;
+    font-size: 0.58rem; letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 0.15em 0.45em; border-radius: 2px; vertical-align: middle;
+  }
+  .tag.red { background: var(--red-light); color: var(--red); }
+  .tag.green { background: var(--green-light); color: var(--green); }
+  .tag.amber { background: var(--amber-light); color: var(--amber); }
+  .tag.blue { background: var(--blue-light); color: var(--blue); }
+  .tag.purple { background: var(--purple-light); color: var(--purple); }
+
+  /* ── REPO TREE ── */
+  .tree {
+    background: var(--bg-card); border: 1px solid var(--border);
+    padding: 1rem 1.25rem; font-family: 'Menlo','Consolas',monospace;
+    font-size: 0.75rem; line-height: 1.7; overflow-x: auto;
+    white-space: pre;
+  }
+  .tree .dir { color: var(--blue); font-weight: 700; }
+  .tree .file { color: var(--text-muted); }
+  .tree .note { color: var(--text-dim); font-style: italic; font-family: system-ui, sans-serif; font-size: 0.72rem; }
+  .tree .new { color: var(--green); font-weight: 600; }
+
+  /* ── PHASE CARDS ── */
+  .phase {
+    background: var(--bg-card); border: 1px solid var(--border);
+    margin-bottom: 0.75rem; overflow: hidden;
+  }
+  .phase-header {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.65rem 1rem; border-bottom: 1px solid var(--border);
+  }
+  .phase-num {
+    font-family: 'Menlo','Consolas',monospace; font-size: 0.65rem;
+    letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700;
+    min-width: 3.5rem;
+  }
+  .phase-title { font-family: Georgia, serif; font-size: 0.92rem; font-weight: 700; flex: 1; }
+  .phase-time {
+    font-family: 'Menlo','Consolas',monospace; font-size: 0.65rem;
+    color: var(--text-dim); white-space: nowrap;
+  }
+  .phase-body { padding: 0.75rem 1rem; }
+  .phase-body p { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.5rem; line-height: 1.5; }
+  .phase-body p strong { color: var(--text); }
+
+  .task-list { list-style: none; padding: 0; margin: 0.4rem 0 0; }
+  .task-list li {
+    display: grid; grid-template-columns: 1.2rem 1fr auto;
+    gap: 0.4rem; padding: 0.3rem 0; border-bottom: 1px solid var(--border);
+    font-size: 0.8rem; align-items: start;
+  }
+  .task-list li:last-child { border-bottom: none; }
+  .task-check {
+    width: 0.85rem; height: 0.85rem; border: 1.5px solid var(--border-strong);
+    border-radius: 2px; margin-top: 0.15rem;
+  }
+  .task-output {
+    font-family: 'Menlo','Consolas',monospace; font-size: 0.68rem;
+    color: var(--text-dim); white-space: nowrap; text-align: right;
+  }
+
+  /* ── YAML PREVIEW ── */
+  .yaml-block {
+    background: var(--mono-bg); border: 1px solid var(--border);
+    padding: 0.75rem 1rem; font-family: 'Menlo','Consolas',monospace;
+    font-size: 0.72rem; line-height: 1.6; overflow-x: auto;
+    white-space: pre; margin: 0.5rem 0;
+  }
+  .yaml-key { color: var(--blue); }
+  .yaml-val { color: var(--accent); }
+  .yaml-comment { color: var(--text-dim); }
+
+  /* ── MAPPING TABLE ── */
+  .scroll-x { overflow-x: auto; }
+  table.t { width: 100%; border-collapse: collapse; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+  table.t th {
+    font-family: 'Menlo','Consolas',monospace; font-size: 0.6rem;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim);
+    text-align: left; padding: 0.4rem 0.5rem;
+    border-bottom: 2px solid var(--border-strong); font-weight: 600;
+  }
+  table.t td { padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+
+  footer {
+    margin-top: 3rem; padding-top: 0.75rem; border-top: 2px solid var(--green);
+    font-family: 'Menlo','Consolas',monospace; font-size: 0.65rem; color: var(--text-dim);
+  }
+</style>
+
+<div class="doc-header">
+  <div class="eyebrow">NEXUS AI-OS · Aktionsplan v1.0</div>
+  <h1>Bottom-Up Implementation — Vom Code zum System</h1>
+  <div class="meta">Ziel: NEXUS v0.1 in 4 Wochen lauffähig. Keine neuen Dashboards. Nur registrierte, funktionierende Bausteine.</div>
+</div>
+
+<!-- ═══════ LEITPRINZIP ═══════ -->
+<div class="principle-box">
+  <div class="title">Leitprinzip: "Kein Architektur-Chat. Nur Code und YAML."</div>
+  <div class="body">
+    NEXUS v0.1 ist <strong>kein Dashboard und kein Diagramm</strong>. Es ist ein Git-Repo mit registrierten Workflows, einer Knowledge Base und einer CLAUDE.md. Die Ordnerstruktur <code>00_REGISTRY / 10_LIBRARY / 20_RUNTIME</code> aus deinem Google Drive ist die richtige Idee — aber sie muss mit <strong>Inhalt</strong> gefüllt werden, nicht mit weiteren Konzeptpapieren.
+    <br><br>
+    <strong>Regel:</strong> Kein neues Konzeptdokument, bevor nicht 10 Workflows registriert sind. Kein neues Dashboard, bevor nicht 50 Knowledge-Dateien existieren.
+  </div>
+</div>
+
+<!-- ═══════ REPO STRUKTUR ═══════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar" style="background:var(--green)"></div>
+    <span class="sect-label">Ziel-Repo-Struktur — nexus-v01/</span>
+  </div>
+
+  <div class="tree"><span class="dir">nexus-v01/</span>
+├── <span class="dir">CLAUDE.md</span>                          <span class="note">← Identität, Konventionen, Normenreferenzen</span>
+├── <span class="dir">README.md</span>                          <span class="note">← Was ist NEXUS, wie benutzen</span>
+│
+├── <span class="dir">00_REGISTRY/</span>                       <span class="note">← Zentrale Registrierung aller Bausteine</span>
+│   ├── <span class="dir">workflows/</span>                     <span class="note">← Workflow-Definitionen (YAML)</span>
+│   │   ├── <span class="new">ec5-biegung.yaml</span>           <span class="note">← Holzbau Biegebemessung EC5</span>
+│   │   ├── <span class="new">ec5-querkraft.yaml</span>         <span class="note">← Holzbau Querkraft EC5</span>
+│   │   ├── <span class="new">ec2-durchstanzen.yaml</span>      <span class="note">← Stahlbeton Durchstanzen EC2</span>
+│   │   ├── <span class="new">hbv-rippendecke.yaml</span>       <span class="note">← HBV Diskrete Methode</span>
+│   │   ├── <span class="new">seilstatik-ec3.yaml</span>        <span class="note">← Seilabspannung EC1/EC3</span>
+│   │   ├── <span class="new">ft-traeger-matrix.yaml</span>     <span class="note">← FT-Träger Oberndorfer</span>
+│   │   ├── <span class="new">buchhaltung-ea.yaml</span>        <span class="note">← E-A-Rechnung Pipeline</span>
+│   │   ├── <span class="new">mail-triage.yaml</span>           <span class="note">← Office Mail-Sortierung</span>
+│   │   ├── <span class="new">honorarnote.yaml</span>           <span class="note">← Honorarnoten-Erstellung</span>
+│   │   └── <span class="new">lv-pruefung.yaml</span>           <span class="note">← LV-Massenprüfung</span>
+│   │
+│   ├── <span class="dir">prompts/</span>                       <span class="note">← Prompt-Templates (YAML)</span>
+│   │   ├── <span class="new">statik-gutachten.yaml</span>      <span class="note">← Gutachten-Erstellung</span>
+│   │   ├── <span class="new">peer-review.yaml</span>           <span class="note">← Cross-LLM Review Prompt</span>
+│   │   ├── <span class="new">executive-summary.yaml</span>     <span class="note">← Zusammenfassung für Auftraggeber</span>
+│   │   ├── <span class="new">normkonformer-nachweis.yaml</span> <span class="note">← Eurocode-Nachweisformat</span>
+│   │   └── <span class="new">mail-briefing.yaml</span>         <span class="note">← Tägliches Mail-Briefing</span>
+│   │
+│   ├── <span class="dir">agents/</span>                        <span class="note">← Agenten-Definitionen</span>
+│   │   ├── <span class="new">office-manager.yaml</span>        <span class="note">← Mail, Kalender, Briefing</span>
+│   │   ├── <span class="new">statik-assistent.yaml</span>      <span class="note">← Engineering-Berechnungen</span>
+│   │   ├── <span class="new">buchhaltungs-agent.yaml</span>    <span class="note">← E-A-Rechnung, Honorare</span>
+│   │   └── <span class="new">peer-reviewer.yaml</span>         <span class="note">← QA Cross-Validation</span>
+│   │
+│   └── <span class="dir">skills/</span>                        <span class="note">← Wiederverwendbare Fähigkeiten</span>
+│       ├── <span class="new">csv-parser.yaml</span>            <span class="note">← Bank-CSV einlesen</span>
+│       ├── <span class="new">pdf-report.yaml</span>            <span class="note">← Bericht als PDF generieren</span>
+│       └── <span class="new">norm-lookup.yaml</span>           <span class="note">← Eurocode-Paragraf nachschlagen</span>
+│
+├── <span class="dir">10_LIBRARY/</span>                        <span class="note">← Knowledge Base (RAG-ready)</span>
+│   ├── <span class="dir">materials/</span>                     <span class="note">← Materialdaten als YAML</span>
+│   │   ├── <span class="new">gl24h.yaml</span>                 <span class="note">← BSH GL24h Festigkeiten</span>
+│   │   ├── <span class="new">gl28h.yaml</span>
+│   │   ├── <span class="new">c25-30.yaml</span>                <span class="note">← Beton C25/30</span>
+│   │   ├── <span class="new">bst550.yaml</span>                <span class="note">← Betonstahl BSt 550</span>
+│   │   └── <span class="new">s235.yaml</span>                  <span class="note">← Baustahl S235</span>
+│   │
+│   ├── <span class="dir">norms/</span>                         <span class="note">← Normen-Referenzen</span>
+│   │   ├── <span class="new">ec5-biegung.yaml</span>           <span class="note">← EC5 §6.1 Biegung</span>
+│   │   ├── <span class="new">ec5-querkraft.yaml</span>         <span class="note">← EC5 §6.1.7 Schub</span>
+│   │   ├── <span class="new">ec2-durchstanzen.yaml</span>      <span class="note">← EC2 §6.4</span>
+│   │   ├── <span class="new">ec1-wind.yaml</span>              <span class="note">← EC1-1-4 Wind</span>
+│   │   └── <span class="new">oib-rl2.yaml</span>              <span class="note">← OIB RL2 Brandschutz</span>
+│   │
+│   ├── <span class="dir">formulas/</span>                      <span class="note">← Berechnungsformeln</span>
+│   │   ├── <span class="new">biegung-rechteck.yaml</span>
+│   │   ├── <span class="new">hbv-discrete.yaml</span>
+│   │   └── <span class="new">durchstanzen-wandpfeiler.yaml</span>
+│   │
+│   └── <span class="dir">templates/</span>                     <span class="note">← Dokumentvorlagen</span>
+│       ├── <span class="new">gutachten.md</span>
+│       ├── <span class="new">honorarnote.md</span>
+│       └── <span class="new">statik-bericht.md</span>
+│
+├── <span class="dir">20_RUNTIME/</span>                        <span class="note">← Ausführbare Tools</span>
+│   ├── <span class="dir">python/</span>                        <span class="note">← Python-Module</span>
+│   │   ├── <span class="new">ec5_bemessung.py</span>           <span class="note">← EC5 Berechnungskern</span>
+│   │   ├── <span class="new">hbv_discrete.py</span>            <span class="note">← HBV Diskrete Methode</span>
+│   │   ├── <span class="new">durchstanzen.py</span>            <span class="note">← EC2 Durchstanzen</span>
+│   │   ├── <span class="new">buchhaltung.py</span>             <span class="note">← E-A-Rechnung aus CSV</span>
+│   │   └── <span class="new">seilstatik.py</span>              <span class="note">← Seilbemessung EC3</span>
+│   │
+│   └── <span class="dir">html/</span>                          <span class="note">← Web-Dashboards/Tools</span>
+│       ├── <span class="new">ec5-dashboard.html</span>
+│       └── <span class="new">buchhaltung-dashboard.html</span>
+│
+└── <span class="dir">30_GOVERNANCE/</span>                     <span class="note">← Audit, Regeln, Manifest</span>
+    ├── <span class="new">MANIFEST.md</span>                    <span class="note">← HUMAN-AI-OS-MANIFEST</span>
+    ├── <span class="new">grundregeln.yaml</span>               <span class="note">← R1–R7 aus Seed Condensation</span>
+    ├── <span class="new">rollen.yaml</span>                    <span class="note">← Human, Chef-LLM, Peer-Review, ...</span>
+    └── <span class="new">audit-log.jsonl</span>                <span class="note">← Protokoll aller Agent-Aktionen</span></div>
+</div>
+
+<!-- ═══════ YAML TEMPLATE ═══════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar" style="background:var(--blue)"></div>
+    <span class="sect-label">Workflow-Registry Format — So sieht ein Eintrag aus</span>
+  </div>
+
+  <div class="yaml-block"><span class="yaml-comment"># 00_REGISTRY/workflows/ec5-biegung.yaml</span>
+<span class="yaml-key">id:</span> <span class="yaml-val">wf-ec5-biegung-001</span>
+<span class="yaml-key">name:</span> <span class="yaml-val">EC5 Biegebemessung Holzträger</span>
+<span class="yaml-key">version:</span> <span class="yaml-val">0.1.0</span>
+<span class="yaml-key">status:</span> <span class="yaml-val">active</span>
+<span class="yaml-key">category:</span> <span class="yaml-val">structural-engineering</span>
+<span class="yaml-key">norm:</span> <span class="yaml-val">ÖNORM EN 1995-1-1 §6.1</span>
+
+<span class="yaml-key">description:</span> <span class="yaml-val">|</span>
+  <span class="yaml-val">Nachweis der Biegetragfähigkeit eines Holzträgers</span>
+  <span class="yaml-val">nach Eurocode 5, NAD Österreich.</span>
+
+<span class="yaml-key">input:</span>
+  <span class="yaml-key">material:</span> <span class="yaml-val">string</span>          <span class="yaml-comment"># z.B. "GL24h"</span>
+  <span class="yaml-key">breite_mm:</span> <span class="yaml-val">number</span>
+  <span class="yaml-key">hoehe_mm:</span> <span class="yaml-val">number</span>
+  <span class="yaml-key">laenge_m:</span> <span class="yaml-val">number</span>
+  <span class="yaml-key">M_Ed_kNm:</span> <span class="yaml-val">number</span>          <span class="yaml-comment"># Bemessungsmoment</span>
+  <span class="yaml-key">kled:</span> <span class="yaml-val">string</span>              <span class="yaml-comment"># "kurz", "mittel", "lang", "ständig"</span>
+  <span class="yaml-key">nkl:</span> <span class="yaml-val">integer</span>              <span class="yaml-comment"># Nutzungsklasse 1, 2, 3</span>
+
+<span class="yaml-key">output:</span>
+  <span class="yaml-key">sigma_md:</span> <span class="yaml-val">number</span>           <span class="yaml-comment"># N/mm² Biegespannung</span>
+  <span class="yaml-key">f_md:</span> <span class="yaml-val">number</span>               <span class="yaml-comment"># N/mm² Bemessungsfestigkeit</span>
+  <span class="yaml-key">eta:</span> <span class="yaml-val">number</span>                <span class="yaml-comment"># Ausnutzungsgrad</span>
+  <span class="yaml-key">nachweis:</span> <span class="yaml-val">boolean</span>          <span class="yaml-comment"># true = erfüllt</span>
+
+<span class="yaml-key">runtime:</span> <span class="yaml-val">20_RUNTIME/python/ec5_bemessung.py</span>
+<span class="yaml-key">knowledge:</span>
+  - <span class="yaml-val">10_LIBRARY/norms/ec5-biegung.yaml</span>
+  - <span class="yaml-val">10_LIBRARY/materials/gl24h.yaml</span>
+<span class="yaml-key">prompt:</span> <span class="yaml-val">00_REGISTRY/prompts/normkonformer-nachweis.yaml</span>
+
+<span class="yaml-key">author:</span> <span class="yaml-val">Julian Zotter</span>
+<span class="yaml-key">created:</span> <span class="yaml-val">2026-07-14</span>
+<span class="yaml-key">tags:</span> <span class="yaml-val">[holzbau, ec5, bemessung, biegung]</span></div>
+</div>
+
+<!-- ═══════ IMPLEMENTATION PHASES ═══════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar" style="background:var(--accent)"></div>
+    <span class="sect-label">Implementation — 4 Phasen, 4 Wochen</span>
+  </div>
+
+  <!-- PHASE 1 -->
+  <div class="phase" style="border-left: 3px solid var(--green);">
+    <div class="phase-header">
+      <div class="phase-num" style="color:var(--green)">Phase 1</div>
+      <div class="phase-title">Repo + Registry-Grundstruktur + erste 5 Workflows</div>
+      <div class="phase-time">Woche 1 · ~6h</div>
+    </div>
+    <div class="phase-body">
+      <p><strong>Ziel:</strong> NEXUS v0.1 existiert als Git-Repo mit den ersten registrierten Workflows. Die Design-Loop-Falle ist gebrochen.</p>
+      <ul class="task-list">
+        <li><div class="task-check"></div><span>Git-Repo <code>nexus-v01</code> anlegen mit Ordnerstruktur</span><span class="task-output">repo</span></li>
+        <li><div class="task-check"></div><span><code>CLAUDE.md</code> schreiben: Identität, Rollen, Normenreferenzen, Konventionen, Arbeitsstil</span><span class="task-output">.md</span></li>
+        <li><div class="task-check"></div><span><code>30_GOVERNANCE/MANIFEST.md</code> — HUMAN-AI-OS-MANIFEST aus Drive übernehmen</span><span class="task-output">.md</span></li>
+        <li><div class="task-check"></div><span><code>30_GOVERNANCE/grundregeln.yaml</code> — R1–R7 aus Seed Condensation</span><span class="task-output">.yaml</span></li>
+        <li><div class="task-check"></div><span>Workflow YAML: <code>ec5-biegung.yaml</code> — aus existierendem EC5-Python-Tool</span><span class="task-output">.yaml</span></li>
+        <li><div class="task-check"></div><span>Workflow YAML: <code>hbv-rippendecke.yaml</code> — aus HBV-Diskrete-Methode</span><span class="task-output">.yaml</span></li>
+        <li><div class="task-check"></div><span>Workflow YAML: <code>ec2-durchstanzen.yaml</code> — aus Durchstanzen-Projekt</span><span class="task-output">.yaml</span></li>
+        <li><div class="task-check"></div><span>Workflow YAML: <code>seilstatik-ec3.yaml</code> — aus Seilstatiker-Projekt</span><span class="task-output">.yaml</span></li>
+        <li><div class="task-check"></div><span>Workflow YAML: <code>mail-triage.yaml</code> — aus Office Management Agent</span><span class="task-output">.yaml</span></li>
+      </ul>
+      <p style="margin-top:0.5rem;"><span class="tag green">Ergebnis</span> Repo mit 5 registrierten Workflows, MANIFEST, Grundregeln.</p>
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase" style="border-left: 3px solid var(--blue);">
+    <div class="phase-header">
+      <div class="phase-num" style="color:var(--blue)">Phase 2</div>
+      <div class="phase-title">Knowledge Base befüllen — Materialien, Normen, Formeln</div>
+      <div class="phase-time">Woche 2 · ~8h</div>
+    </div>
+    <div class="phase-body">
+      <p><strong>Ziel:</strong> Die 5 Holzbau-Projektsilos werden konsolidiert. Materialdaten und Normenparagrafen als strukturierte YAML-Dateien verfügbar.</p>
+      <ul class="task-list">
+        <li><div class="task-check"></div><span><code>10_LIBRARY/materials/</code> — 10 Holzmaterialien (GL24h–GL32h, C24, BauBuche, BSP)</span><span class="task-output">10× .yaml</span></li>
+        <li><div class="task-check"></div><span><code>10_LIBRARY/materials/</code> — 5 Beton/Stahl-Materialien (C25/30, C30/37, BSt550, S235, S355)</span><span class="task-output">5× .yaml</span></li>
+        <li><div class="task-check"></div><span><code>10_LIBRARY/norms/</code> — EC5 Kernparagrafen (§6.1 Biegung, §6.1.7 Schub, §6.2 Knicken, §8 Anschlüsse)</span><span class="task-output">4× .yaml</span></li>
+        <li><div class="task-check"></div><span><code>10_LIBRARY/norms/</code> — EC2 Kernparagrafen (§6.2 Querkraft, §6.4 Durchstanzen)</span><span class="task-output">2× .yaml</span></li>
+        <li><div class="task-check"></div><span><code>10_LIBRARY/norms/</code> — OIB RL2, OIB RL6, ÖNORM B 2320 (Holzbau-Ausführung)</span><span class="task-output">3× .yaml</span></li>
+        <li><div class="task-check"></div><span><code>10_LIBRARY/formulas/</code> — 5 Kernformeln aus existierenden Python-Tools extrahieren</span><span class="task-output">5× .yaml</span></li>
+        <li><div class="task-check"></div><span><code>10_LIBRARY/templates/</code> — Gutachten-Template, Statik-Bericht, Honorarnote</span><span class="task-output">3× .md</span></li>
+        <li><div class="task-check"></div><span>Alle Workflow-YAMLs: <code>knowledge:</code>-Felder auf Library-Dateien verlinken</span><span class="task-output">update</span></li>
+      </ul>
+      <p style="margin-top:0.5rem;"><span class="tag blue">Ergebnis</span> ~30 Knowledge-Dateien, verlinkt mit Workflows. SSoT für Materialien + Normen.</p>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase" style="border-left: 3px solid var(--amber);">
+    <div class="phase-header">
+      <div class="phase-num" style="color:var(--amber)">Phase 3</div>
+      <div class="phase-title">Büro-Automatisierung — Buchhaltung, Honorare, Mail</div>
+      <div class="phase-time">Woche 3 · ~8h</div>
+    </div>
+    <div class="phase-body">
+      <p><strong>Ziel:</strong> Die wiederkehrenden manuellen Aufgaben (12+ Buchhaltungs-Chats/Jahr) werden automatisiert und als NEXUS-Workflows registriert.</p>
+      <ul class="task-list">
+        <li><div class="task-check"></div><span><code>20_RUNTIME/python/buchhaltung.py</code> — CSV-Import, Kategorisierung, E-A-Rechnung</span><span class="task-output">.py</span></li>
+        <li><div class="task-check"></div><span><code>00_REGISTRY/workflows/buchhaltung-ea.yaml</code> — Workflow registrieren</span><span class="task-output">.yaml</span></li>
+        <li><div class="task-check"></div><span><code>20_RUNTIME/python/honorarnote.py</code> — Honorarnoten aus Template + Stundensätze</span><span class="task-output">.py</span></li>
+        <li><div class="task-check"></div><span><code>00_REGISTRY/workflows/honorarnote.yaml</code> — Workflow registrieren</span><span class="task-output">.yaml</span></li>
+        <li><div class="task-check"></div><span><code>00_REGISTRY/agents/buchhaltungs-agent.yaml</code> — Agent-Definition</span><span class="task-output">.yaml</span></li>
+        <li><div class="task-check"></div><span><code>00_REGISTRY/agents/office-manager.yaml</code> — bestehenden Agent formalisieren</span><span class="task-output">.yaml</span></li>
+        <li><div class="task-check"></div><span>5 weitere Engineering-Workflows registrieren (FT-Träger, LV-Prüfung, Brandschutz, FloorPlan2BIM, RFEM-API)</span><span class="task-output">5× .yaml</span></li>
+      </ul>
+      <p style="margin-top:0.5rem;"><span class="tag amber">Ergebnis</span> Buchhaltung automatisiert. 12 Workflows registriert. 4 Agents definiert.</p>
+    </div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase" style="border-left: 3px solid var(--purple);">
+    <div class="phase-header">
+      <div class="phase-num" style="color:var(--purple)">Phase 4</div>
+      <div class="phase-title">Prompts + Governance + Orchestrierung</div>
+      <div class="phase-time">Woche 4 · ~6h</div>
+    </div>
+    <div class="phase-body">
+      <p><strong>Ziel:</strong> Prompt Registry befüllt. Rollen-Matrix definiert. NEXUS v0.1 ist komplett und nutzbar.</p>
+      <ul class="task-list">
+        <li><div class="task-check"></div><span><code>00_REGISTRY/prompts/</code> — 10 Prompt-Templates aus bestehenden Projekten extrahieren</span><span class="task-output">10× .yaml</span></li>
+        <li><div class="task-check"></div><span><code>30_GOVERNANCE/rollen.yaml</code> — Human, Chef-LLM, Peer-Review, Spezialisten, Registries</span><span class="task-output">.yaml</span></li>
+        <li><div class="task-check"></div><span><code>00_REGISTRY/agents/peer-reviewer.yaml</code> — Cross-Validation Agent</span><span class="task-output">.yaml</span></li>
+        <li><div class="task-check"></div><span><code>00_REGISTRY/skills/</code> — 5 wiederverwendbare Skills (CSV-Parser, PDF-Report, Norm-Lookup, DXF-Export, Mail-Parser)</span><span class="task-output">5× .yaml</span></li>
+        <li><div class="task-check"></div><span><code>README.md</code> — NEXUS-Übersicht mit Index aller registrierten Bausteine</span><span class="task-output">.md</span></li>
+        <li><div class="task-check"></div><span>Google Drive Ordner <code>00_WORKFLOW_PATTERN_REGISTRY</code> mit Repo synchronisieren</span><span class="task-output">sync</span></li>
+      </ul>
+      <p style="margin-top:0.5rem;"><span class="tag purple">Ergebnis</span> NEXUS v0.1 komplett: 12+ Workflows, 30+ Knowledge-Dateien, 10 Prompts, 4 Agents, 5 Skills, Governance.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MAPPING: DRIVE → REPO ═══════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar" style="background:var(--blue)"></div>
+    <span class="sect-label">Mapping: Google Drive → Git-Repo</span>
+  </div>
+  <div class="scroll-x">
+    <table class="t">
+      <thead>
+        <tr><th>Drive-Ordner</th><th>→ Repo-Pfad</th><th>Inhalt</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>00_REGISTRY</code></td>
+          <td><code>nexus-v01/00_REGISTRY/</code></td>
+          <td>Workflow-, Prompt-, Agent-, Skill-Definitionen (YAML)</td>
+        </tr>
+        <tr>
+          <td><code>10_LIBRARY</code></td>
+          <td><code>nexus-v01/10_LIBRARY/</code></td>
+          <td>Materialien, Normen, Formeln, Templates</td>
+        </tr>
+        <tr>
+          <td><code>20_RUNTIME</code></td>
+          <td><code>nexus-v01/20_RUNTIME/</code></td>
+          <td>Python-Module, HTML-Tools — der ausführbare Code</td>
+        </tr>
+        <tr>
+          <td><code>78_HUMAN-AI-OS-MANIFEST</code></td>
+          <td><code>nexus-v01/30_GOVERNANCE/MANIFEST.md</code></td>
+          <td>Grundregeln, Rollen, Prinzipien der Mensch-AI-Zusammenarbeit</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════ USE-CASE PRIORISIERUNG ═══════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar" style="background:var(--accent)"></div>
+    <span class="sect-label">Use-Case Priorisierung — Was wird zuerst als Workflow registriert</span>
+  </div>
+  <div class="scroll-x">
+    <table class="t">
+      <thead>
+        <tr><th>#</th><th>Use Case</th><th>Typ</th><th>Hebel</th><th>Phase</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td><strong>EC5 Biegebemessung</strong></td><td>Engineering</td><td><span class="tag green">Hoch</span></td><td>P1</td><td>Code existiert → formalisieren</td></tr>
+        <tr><td>2</td><td><strong>HBV Rippendecke</strong></td><td>Engineering</td><td><span class="tag green">Hoch</span></td><td>P1</td><td>Code existiert → formalisieren</td></tr>
+        <tr><td>3</td><td><strong>Durchstanzen EC2</strong></td><td>Engineering</td><td><span class="tag green">Hoch</span></td><td>P1</td><td>Code existiert → formalisieren</td></tr>
+        <tr><td>4</td><td><strong>Seilstatik</strong></td><td>Engineering</td><td><span class="tag amber">Mittel</span></td><td>P1</td><td>Code existiert → formalisieren</td></tr>
+        <tr><td>5</td><td><strong>Mail-Triage + Briefing</strong></td><td>Office</td><td><span class="tag green">Hoch</span></td><td>P1</td><td>Claude Code Routine → formalisieren</td></tr>
+        <tr><td>6</td><td><strong>E-A-Rechnung Buchhaltung</strong></td><td>Office</td><td><span class="tag red">Kritisch</span></td><td>P3</td><td>12+ manuelle Chats → automatisieren</td></tr>
+        <tr><td>7</td><td><strong>Honorarnoten</strong></td><td>Office</td><td><span class="tag red">Kritisch</span></td><td>P3</td><td>Wiederkehrend manuell → automatisieren</td></tr>
+        <tr><td>8</td><td><strong>FT-Träger-Matrix</strong></td><td>Engineering</td><td><span class="tag amber">Mittel</span></td><td>P3</td><td>Excel → Python Pipeline</td></tr>
+        <tr><td>9</td><td><strong>LV-Prüfung</strong></td><td>Engineering</td><td><span class="tag amber">Mittel</span></td><td>P3</td><td>Teilweise automatisiert</td></tr>
+        <tr><td>10</td><td><strong>FloorPlan2BIM</strong></td><td>Innovation</td><td><span class="tag blue">Strategisch</span></td><td>P3</td><td>Prototyp → registrieren</td></tr>
+        <tr><td>11</td><td><strong>Peer Review Cross-LLM</strong></td><td>Governance</td><td><span class="tag blue">Strategisch</span></td><td>P4</td><td>Konzept → Agent definieren</td></tr>
+        <tr><td>12</td><td><strong>RFEM6 API-Integration</strong></td><td>Engineering</td><td><span class="tag blue">Strategisch</span></td><td>P3</td><td>MCP-Server-Prototyp → registrieren</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════ ERFOLGSKRITERIEN ═══════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar" style="background:var(--green)"></div>
+    <span class="sect-label">Erfolgskriterien — Wann ist NEXUS v0.1 "fertig"?</span>
+  </div>
+  <div class="scroll-x">
+    <table class="t">
+      <thead>
+        <tr><th>Kriterium</th><th>Zielwert</th><th>Warum</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Registrierte Workflows</strong></td><td>≥ 10</td><td>Genug um den Registry-Mechanismus zu validieren</td></tr>
+        <tr><td><strong>Knowledge-Dateien</strong></td><td>≥ 30</td><td>Materialien + Normen decken 80% der täglichen Arbeit</td></tr>
+        <tr><td><strong>Prompt-Templates</strong></td><td>≥ 10</td><td>Wiederkehrende Ausgabeformate standardisiert</td></tr>
+        <tr><td><strong>Agent-Definitionen</strong></td><td>≥ 4</td><td>Office, Engineering, Buchhaltung, Peer Review</td></tr>
+        <tr><td><strong>Automatisierte Büro-Tasks</strong></td><td>≥ 2</td><td>Buchhaltung + Honorarnoten nicht mehr manuell</td></tr>
+        <tr><td><strong>CLAUDE.md vorhanden</strong></td><td>Ja</td><td>Kein Kontextverlust zwischen Sessions</td></tr>
+        <tr><td><strong>Architektur-Chats gestartet</strong></td><td>0</td><td>Beweis, dass der Design-Loop gebrochen ist</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════ ANTI-PATTERN GUARD ═══════ -->
+<div class="sect">
+  <div class="sect-head">
+    <div class="sect-bar" style="background:var(--red)"></div>
+    <span class="sect-label">Anti-Pattern Guard — Warnzeichen erkennen</span>
+  </div>
+  <div class="principle-box" style="border-left-color:var(--red);">
+    <div class="title">Wenn eines dieser Dinge passiert → STOPP</div>
+    <div class="body">
+      <strong>1.</strong> Du öffnest einen Chat mit "AI-OS Architektur" oder "Framework Design" im Titel → <strong>Schließen. Stattdessen eine .yaml-Datei schreiben.</strong>
+      <br><strong>2.</strong> Du erstellst ein Dashboard bevor 10 Workflows registriert sind → <strong>Dashboard löschen. Erst befüllen, dann visualisieren.</strong>
+      <br><strong>3.</strong> Du definierst neue Begriffe (Governance Engine, Conditional Pattern Discovery, Signal-Topologie) für existierende Konzepte → <strong>Bestehenden Begriff verwenden. Terminologie einfrieren.</strong>
+      <br><strong>4.</strong> Du startest ein neues Wissensprojekt in Claude/GPT statt in <code>10_LIBRARY/</code> → <strong>Direkt in die Knowledge Base schreiben.</strong>
+      <br><strong>5.</strong> Buchhaltung taucht als manueller Chat auf → <strong>Sofort <code>buchhaltung.py</code> aufrufen statt manuell sortieren.</strong>
+    </div>
+  </div>
+</div>
+
+<footer>
+  NEXUS AKTIONSPLAN v1.0 · Bottom-Up Implementation · 2026-07-14
+  <br>Quellen: Gap-Analyse + Seed Condensation + ~400 Claude Chats + Memory-Extraktionen
+</footer>
