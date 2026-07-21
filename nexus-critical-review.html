@@ -1,0 +1,786 @@
+<title>NEXUS Kritische Prüfung — 5-Punkte-Governance-Audit</title>
+<style>
+  :root {
+    --ground: #F9F7F4;
+    --surface: #FFFFFF;
+    --surface-inset: #F0EDE8;
+    --text: #1C1A17;
+    --text-secondary: #5D584F;
+    --text-dim: #918B81;
+    --rule: #D6D1C9;
+    --rule-strong: #B8B2A7;
+    --engineering-blue: #1B4F72;
+    --engineering-blue-soft: #E8F0F7;
+    --fail: #A93226;
+    --fail-bg: #FBEAE8;
+    --pass: #1E7145;
+    --pass-bg: #E6F4EC;
+    --warn: #B7790A;
+    --warn-bg: #FDF5E6;
+    --ref-bg: #F4F1EB;
+    --ref-border: #D6D1C9;
+    --mono: 'Menlo', 'Consolas', 'DejaVu Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #0F0E0D;
+      --surface: #1A1917;
+      --surface-inset: #222120;
+      --text: #E4E0DA;
+      --text-secondary: #9E998F;
+      --text-dim: #6B665D;
+      --rule: #2E2C28;
+      --rule-strong: #3E3B35;
+      --engineering-blue: #5A9FD4;
+      --engineering-blue-soft: #141E28;
+      --fail: #E05A4F;
+      --fail-bg: #2A1412;
+      --pass: #4DB87A;
+      --pass-bg: #12261A;
+      --warn: #D4A232;
+      --warn-bg: #2A2212;
+      --ref-bg: #1E1D1A;
+      --ref-border: #2E2C28;
+      --mono: 'Menlo', 'Consolas', 'DejaVu Sans Mono', monospace;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0F0E0D;
+    --surface: #1A1917;
+    --surface-inset: #222120;
+    --text: #E4E0DA;
+    --text-secondary: #9E998F;
+    --text-dim: #6B665D;
+    --rule: #2E2C28;
+    --rule-strong: #3E3B35;
+    --engineering-blue: #5A9FD4;
+    --engineering-blue-soft: #141E28;
+    --fail: #E05A4F;
+    --fail-bg: #2A1412;
+    --pass: #4DB87A;
+    --pass-bg: #12261A;
+    --warn: #D4A232;
+    --warn-bg: #2A2212;
+    --ref-bg: #1E1D1A;
+    --ref-border: #2E2C28;
+  }
+  :root[data-theme="light"] {
+    --ground: #F9F7F4;
+    --surface: #FFFFFF;
+    --surface-inset: #F0EDE8;
+    --text: #1C1A17;
+    --text-secondary: #5D584F;
+    --text-dim: #918B81;
+    --rule: #D6D1C9;
+    --rule-strong: #B8B2A7;
+    --engineering-blue: #1B4F72;
+    --engineering-blue-soft: #E8F0F7;
+    --fail: #A93226;
+    --fail-bg: #FBEAE8;
+    --pass: #1E7145;
+    --pass-bg: #E6F4EC;
+    --warn: #B7790A;
+    --warn-bg: #FDF5E6;
+    --ref-bg: #F4F1EB;
+    --ref-border: #D6D1C9;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--text);
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    padding: 2.5rem 1.5rem 5rem;
+    max-width: 58rem;
+    margin: 0 auto;
+  }
+
+  /* ── DOCUMENT HEADER ── */
+  .doc-header {
+    border-left: 4px solid var(--engineering-blue);
+    padding-left: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+  .doc-id {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--engineering-blue);
+    margin-bottom: 0.2rem;
+  }
+  .doc-header h1 {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1.45rem;
+    font-weight: 700;
+    line-height: 1.25;
+    text-wrap: balance;
+    color: var(--text);
+    margin-bottom: 0.35rem;
+  }
+  .doc-header .subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .doc-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1.5rem;
+    margin-top: 0.75rem;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+
+  /* ── VERDICT MATRIX ── */
+  .verdict-matrix {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    margin-bottom: 2.5rem;
+    overflow-x: auto;
+  }
+  .verdict-matrix table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .verdict-matrix th {
+    background: var(--surface-inset);
+    border-bottom: 2px solid var(--rule-strong);
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .verdict-matrix td {
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  .verdict-matrix tr:last-child td { border-bottom: none; }
+  .verdict-matrix .pt-num {
+    font-family: var(--mono);
+    font-weight: 600;
+    color: var(--engineering-blue);
+    white-space: nowrap;
+  }
+  .verdict-matrix .pt-name { font-weight: 500; }
+
+  /* Verdict pills */
+  .verdict {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 0.15rem 0.55rem;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .verdict--fail { background: var(--fail-bg); color: var(--fail); }
+  .verdict--warn { background: var(--warn-bg); color: var(--warn); }
+  .verdict--pass { background: var(--pass-bg); color: var(--pass); }
+
+  /* ── GESAMTURTEIL ── */
+  .overall-verdict {
+    background: var(--fail-bg);
+    border: 1px solid var(--fail);
+    padding: 1rem 1.25rem;
+    margin-bottom: 2.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+  }
+  .overall-verdict .label {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fail);
+    white-space: nowrap;
+  }
+  .overall-verdict .text {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  /* ── REVIEW SECTIONS ── */
+  .review-section {
+    margin-bottom: 2.5rem;
+    border-top: 2px solid var(--rule-strong);
+    padding-top: 1.5rem;
+  }
+  .review-section .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .section-num {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--engineering-blue);
+  }
+  .section-title {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .subsection {
+    margin-bottom: 1.25rem;
+  }
+  .subsection h4 {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+    margin-bottom: 0.4rem;
+  }
+  .subsection p, .subsection ul {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text);
+  }
+  .subsection ul {
+    padding-left: 1.25rem;
+  }
+  .subsection li {
+    margin-bottom: 0.3rem;
+  }
+  .subsection li::marker {
+    color: var(--text-dim);
+  }
+
+  /* ── EVIDENCE REFERENCES ── */
+  .ref-block {
+    background: var(--ref-bg);
+    border-left: 3px solid var(--ref-border);
+    padding: 0.6rem 0.85rem;
+    margin: 0.75rem 0;
+    font-size: 0.78rem;
+    line-height: 1.55;
+  }
+  .ref-block .ref-tag {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.2rem;
+  }
+  .ref-tag--drive { color: var(--engineering-blue); }
+  .ref-tag--memory { color: var(--warn); }
+  .ref-tag--chat { color: var(--pass); }
+  .ref-block .ref-content {
+    color: var(--text-secondary);
+  }
+  .ref-block code {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    background: var(--surface-inset);
+    padding: 0.1rem 0.3rem;
+    border-radius: 2px;
+  }
+
+  /* ── DEFICIENCY LIST ── */
+  .deficiency-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+  }
+  .deficiency-list li {
+    position: relative;
+    padding: 0.35rem 0 0.35rem 1.5rem;
+    font-size: 0.83rem;
+    line-height: 1.5;
+    border-bottom: 1px solid var(--rule);
+  }
+  .deficiency-list li:last-child { border-bottom: none; }
+  .deficiency-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.65rem;
+    width: 8px;
+    height: 8px;
+    border-radius: 1px;
+  }
+  .deficiency-list li.d-fail::before { background: var(--fail); }
+  .deficiency-list li.d-warn::before { background: var(--warn); }
+  .deficiency-list li.d-pass::before { background: var(--pass); }
+
+  /* ── COMPLIANCE METER ── */
+  .compliance-meter {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0.5rem 0 1rem;
+  }
+  .compliance-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--surface-inset);
+    border-radius: 3px;
+    overflow: hidden;
+    max-width: 12rem;
+  }
+  .compliance-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+  .compliance-fill--fail { background: var(--fail); }
+  .compliance-fill--warn { background: var(--warn); }
+  .compliance-fill--pass { background: var(--pass); }
+  .compliance-pct {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    min-width: 2.5rem;
+  }
+  .compliance-pct--fail { color: var(--fail); }
+  .compliance-pct--warn { color: var(--warn); }
+  .compliance-pct--pass { color: var(--pass); }
+
+  /* ── FOOTER ── */
+  .doc-footer {
+    margin-top: 3rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .doc-footer strong {
+    color: var(--text-secondary);
+  }
+
+  /* ── CONCLUSION BOX ── */
+  .conclusion {
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    padding: 1.25rem;
+    margin-top: 2rem;
+  }
+  .conclusion h3 {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+  .conclusion p {
+    font-size: 0.85rem;
+    line-height: 1.65;
+    margin-bottom: 0.5rem;
+  }
+  .conclusion p:last-child { margin-bottom: 0; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    body { padding: 1.25rem 1rem 3rem; }
+    .doc-header h1 { font-size: 1.2rem; }
+    .section-title { font-size: 1rem; }
+    .doc-meta { flex-direction: column; gap: 0.15rem; }
+    .overall-verdict { flex-direction: column; gap: 0.5rem; }
+  }
+</style>
+
+<!-- ═══════════════════════════════════════════════ HEADER -->
+<div class="doc-header">
+  <div class="doc-id">NEXUS Governance Audit &middot; CR-2026-07-21-001</div>
+  <h1>Kritische Prüfung: 5 Governance-Dimensionen</h1>
+  <div class="subtitle">Selbstaudit dieser Chat-Session gegen die definierten NEXUS-Governance-Regeln, mit obligatorischem Verweis auf Google&nbsp;Drive, Personal&nbsp;Memory und Chat-Kontext.</div>
+  <div class="doc-meta">
+    <span>Prüfer: [5] CLAUDE</span>
+    <span>Datum: 2026-07-21</span>
+    <span>Scope: Chat-Session claude/review-changes-*</span>
+    <span>Rolle: Unabhängiger Review / Falsifikation</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ OVERALL VERDICT -->
+<div class="overall-verdict">
+  <span class="label">Gesamturteil</span>
+  <span class="text">
+    <strong>NICHT KONFORM</strong> — Von 5 geprüften Governance-Dimensionen erfüllt diese Chat-Session keine vollständig.
+    Zwei erhalten <em>TEILWEISE</em>, drei <em>DEFIZIT</em>.
+    Die Session produzierte inhaltlich wertvolle Artefakte, aber unter Missachtung nahezu aller eigenen Governance-Vorgaben.
+    Das ist exakt das Anti-Pattern, das die Gap-Analyse als "Design-Loop ohne Implementierung" identifiziert hat — nun reproduziert in der Governance-Ebene selbst.
+  </span>
+</div>
+
+<!-- ═══════════════════════════════════════════════ VERDICT MATRIX -->
+<div class="verdict-matrix">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:3.5rem">#</th>
+        <th>Prüfpunkt</th>
+        <th style="width:7rem">Verdikt</th>
+        <th style="width:5.5rem">Konformität</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="pt-num">#1</td>
+        <td class="pt-name">Kommunikationslogik</td>
+        <td><span class="verdict verdict--warn">TEILWEISE</span></td>
+        <td>
+          <div class="compliance-meter">
+            <div class="compliance-bar"><div class="compliance-fill compliance-fill--warn" style="width:35%"></div></div>
+            <span class="compliance-pct compliance-pct--warn">35%</span>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="pt-num">#2</td>
+        <td class="pt-name">Ablaufschema (COT-Workflows / LAYER)</td>
+        <td><span class="verdict verdict--fail">DEFIZIT</span></td>
+        <td>
+          <div class="compliance-meter">
+            <div class="compliance-bar"><div class="compliance-fill compliance-fill--fail" style="width:15%"></div></div>
+            <span class="compliance-pct compliance-pct--fail">15%</span>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="pt-num">#3</td>
+        <td class="pt-name">GUARDRAILS / CONSTRAINTS</td>
+        <td><span class="verdict verdict--warn">TEILWEISE</span></td>
+        <td>
+          <div class="compliance-meter">
+            <div class="compliance-bar"><div class="compliance-fill compliance-fill--warn" style="width:40%"></div></div>
+            <span class="compliance-pct compliance-pct--warn">40%</span>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="pt-num">#4</td>
+        <td class="pt-name">APPROVAL / EVIDENCE-CHECK</td>
+        <td><span class="verdict verdict--fail">DEFIZIT</span></td>
+        <td>
+          <div class="compliance-meter">
+            <div class="compliance-bar"><div class="compliance-fill compliance-fill--fail" style="width:10%"></div></div>
+            <span class="compliance-pct compliance-pct--fail">10%</span>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="pt-num">#5</td>
+        <td class="pt-name">PEER-REVIEW-QUALITY-LAYER</td>
+        <td><span class="verdict verdict--fail">DEFIZIT</span></td>
+        <td>
+          <div class="compliance-meter">
+            <div class="compliance-bar"><div class="compliance-fill compliance-fill--fail" style="width:5%"></div></div>
+            <span class="compliance-pct compliance-pct--fail">5%</span>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════ #1 KOMMUNIKATIONSLOGIK -->
+<div class="review-section">
+  <div class="section-header">
+    <span class="section-num">#1</span>
+    <span class="section-title">Kommunikationslogik</span>
+    <span class="verdict verdict--warn">TEILWEISE</span>
+  </div>
+
+  <div class="subsection">
+    <h4>Soll-Zustand (Governance-Vorgabe)</h4>
+    <p>Die ROLLOUT-GRUNDORDNUNG definiert eine strikte Rollenhierarchie [1]&ndash;[9] mit formalem ACK-Protokoll, Prioritätskennzeichnung (P***, P**, P*) und verbindlicher Dateinamenkonvention (<code>JJ_MM_TT_[AUTOR-ID]__DOKUMENTTYP-TITEL-vX.Y.ext</code>). Jede Kommunikation zwischen Agenten soll die Rollenkennung tragen, und der Orchestrator [2] koordiniert alle Übergaben.</p>
+  </div>
+
+  <div class="ref-block">
+    <div class="ref-tag ref-tag--drive">Google Drive</div>
+    <div class="ref-content">
+      <code>ROLLOUT-GRUNDORDNUNG-v0.1.txt</code> (ID: 1plN0SsEV4O37k3MYbd6uS-aA1gQFz3op) — Abschnitt 2 "Grundregeln", Abschnitt 4 "ACK-Protokoll", Abschnitt 7 "Dateibenennung".<br>
+      <code>NEXUS-AI ZENTRALE-Kommunikationsdefinition-[2]-[3]-PROTOKOLL.txt</code> — Zeilen 56&ndash;61: 5-Layer-Architektur; Zeilen 1690&ndash;1730: Autonomie-Levels A0&ndash;A4.
+    </div>
+  </div>
+  <div class="ref-block">
+    <div class="ref-tag ref-tag--memory">Personal Memory</div>
+    <div class="ref-content">
+      Seed Condensation R7 — Rollenklarheit: "Jeder Agent hat eine definierte Rolle, Kompetenzbereich und Eskalationspfad. Keine Kompetenzüberschreitung."<br>
+      Memory-Extraktion ID02 (Business): "deterministic, fact-based, modular, source-first working style" als Basisanforderung.
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h4>Ist-Zustand (dieser Chat)</h4>
+    <ul class="deficiency-list">
+      <li class="d-pass">Implizite Rollenzuordnung erkennbar: User agierte als [1] (Final Authority), Claude als [5] (unabhängiger Reviewer/Spezialist). Der User gab Anweisungen, Claude führte aus.</li>
+      <li class="d-pass">Eskalationsverhalten korrekt: Claude hat bei unklaren Anweisungen nachgefragt (z.B. Glossar-Begriffe) und bei Zugriffsproblemen (Artifact-Permission) alternative Lösungswege kommuniziert.</li>
+      <li class="d-fail">Kein formales ACK-Protokoll: Keine einzige Auftragsbestätigung mit Rollenkennung, Prioritätsstufe oder strukturiertem Empfangsbeleg. Die Kommunikation folgte einem Chat-Pattern, nicht dem NEXUS-Protokoll.</li>
+      <li class="d-fail">Keine Prioritätskennzeichnung: Keines der Arbeitspakete wurde mit P***, P** oder P* eingestuft, obwohl die ROLLOUT-GRUNDORDNUNG dies für jede Aufgabe verlangt.</li>
+      <li class="d-fail">Dateinamenkonvention verletzt: Alle erzeugten Dateien (<code>glossary.html</code>, <code>nexus-seed-condensation.html</code>, <code>gap-analysis.html</code>, <code>nexus-action-plan.html</code>) verwenden englische Kurznamen statt <code>26_07_21_[ID05]__ANALYSE-KRITISCHE-PRUEFUNG-v1.0.html</code>.</li>
+      <li class="d-fail">Kein Orchestrator [2] eingebunden: Die ZENTRALE-Kommunikationsdefinition definiert [2] GPT-Business als Orchestrator und Implementation Lead. In dieser Session kommunizierte [1] direkt mit [5] — ohne Protokollierung durch [2].</li>
+      <li class="d-fail">Kein Session-Initialisierungsprotokoll: Weder Rollen noch Scope noch Autonomie-Level (A0&ndash;A4) wurden zu Beginn der Session formal vereinbart.</li>
+    </ul>
+  </div>
+
+  <div class="ref-block">
+    <div class="ref-tag ref-tag--chat">Chat-Kontext</div>
+    <div class="ref-content">
+      Der User formulierte Aufträge in natürlicher Sprache ("ERSTELLE FÜR DIESEN CHAT BITTE EIN GLOSSARY..."), Claude antwortete mit direkter Umsetzung. Keine einzige Interaktion folgte dem Schema <code>[SENDER-ID] → [EMPFÄNGER-ID]: ACK | ANWEISUNG | STATUS</code>. Das ist ein fundamentaler Bruch mit dem eigenen Kommunikationsprotokoll.
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h4>Begründung des Verdikts</h4>
+    <p>Die Kommunikation war <em>inhaltlich</em> effektiv — Aufträge wurden verstanden und umgesetzt. Aber sie war <em>strukturell</em> non-konform. Die gesamte NEXUS-Kommunikationslogik (ACK, Rollen-IDs, Prioritäten, Dateinamen) wurde ignoriert. Das "TEILWEISE" ergibt sich ausschließlich daraus, dass die implizite Rollentrennung [1]/[5] und das Eskalationsverhalten im Geist der Governance lagen.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ #2 ABLAUFSCHEMA -->
+<div class="review-section">
+  <div class="section-header">
+    <span class="section-num">#2</span>
+    <span class="section-title">Ablaufschema (COT-Workflows / LAYER)</span>
+    <span class="verdict verdict--fail">DEFIZIT</span>
+  </div>
+
+  <div class="subsection">
+    <h4>Soll-Zustand (Governance-Vorgabe)</h4>
+    <p>Die ZENTRALE-Kommunikationsdefinition definiert einen verbindlichen 9-Schritte-Ablauf: <strong>PLAN → ANALYSE → IMPLEMENTIERUNG → SELF REVIEW → PEER REVIEW CHECK → TEST → REGISTRY UPDATE → STATUS REPORT → NEXT TASK</strong>. Der WORKFLOW COMPILER spezifiziert zusätzlich eine 3-stufige CoT-Prompt-Chain (Intent Analysis → Task Decomposition → Self-Refinement &amp; Constraint-Check). Beide sind als deterministische Pflichtsequenzen dokumentiert.</p>
+  </div>
+
+  <div class="ref-block">
+    <div class="ref-tag ref-tag--drive">Google Drive</div>
+    <div class="ref-content">
+      <code>ZENTRALE-Kommunikationsdefinition</code> — Zeilen 1671&ndash;1687: PLAN→…→NEXT TASK Sequenz.<br>
+      <code>NEXUS WORKFLOW COMPILER - AGENT.txt</code> — Zeilen 431&ndash;551: CoT-Prompt-Chain mit Prompt 1 (Intent Analysis), Prompt 2 (Task Decomposition), Prompt 3 (Self-Refinement &amp; Constraint-Check). Zeile 551: "Diese drei Prompts bilden die CoT-Workflow-Pipeline im Backend ab."
+    </div>
+  </div>
+  <div class="ref-block">
+    <div class="ref-tag ref-tag--memory">Personal Memory</div>
+    <div class="ref-content">
+      R2 — Registry First: "Jeder Workflow, Prompt und jedes Wissensobjekt wird registriert, versioniert und ist rückverfolgbar."<br>
+      R4 — Determinismus: "Gleiche Eingabe → gleiche Struktur. Stochastische Varianz wird dokumentiert, nie verschwiegen."
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h4>Ist-Zustand (dieser Chat)</h4>
+    <ul class="deficiency-list">
+      <li class="d-pass">Implizite Analyse-Phase erkennbar: Vor jeder Artefakt-Erstellung wurde der Kontext analysiert (Memory-Dateien gelesen, Drive-Ordner gelistet, Chat-History geparst).</li>
+      <li class="d-fail"><strong>Kein PLAN-Schritt:</strong> Keines der 5 Arbeitspakete (Glossar, Seed Condensation, Gap-Analyse, Action Plan, Kritische Prüfung) begann mit einem dokumentierten Plan, der vom User freigegeben wurde.</li>
+      <li class="d-fail"><strong>Kein SELF REVIEW:</strong> Kein einziges erzeugtes Artefakt durchlief eine dokumentierte Selbstprüfung gegen Qualitätskriterien vor der Auslieferung an [1].</li>
+      <li class="d-fail"><strong>Kein PEER REVIEW CHECK:</strong> Siehe #5 — vollständig absent.</li>
+      <li class="d-fail"><strong>Kein TEST:</strong> Kein Artefakt wurde gegen definierte Akzeptanzkriterien getestet. HTML-Dateien wurden generiert und direkt committed, ohne Validierung gegen ein Schema oder eine Spezifikation.</li>
+      <li class="d-fail"><strong>Kein REGISTRY UPDATE:</strong> Keines der 4 erzeugten Artefakte wurde in ein NEXUS-Registry eingetragen. Kein <code>JSONL</code>-Eintrag, kein Hash, kein <code>master_registry</code>-Write.</li>
+      <li class="d-fail"><strong>Kein STATUS REPORT:</strong> Kein strukturierter Fortschrittsbericht nach Meilenstein-Schema. Fortschritt wurde informell in Chat-Nachrichten kommuniziert.</li>
+      <li class="d-fail"><strong>Keine CoT-Pipeline:</strong> Die 3-stufige Prompt-Chain (Intent Analysis → Task Decomposition → Self-Refinement) wurde in keinem einzigen Arbeitspaket angewandt. Stattdessen: direkte Umsetzung nach freier Interpretation des User-Inputs.</li>
+    </ul>
+  </div>
+
+  <div class="subsection">
+    <h4>Layer-Architektur-Compliance</h4>
+    <p>Die 5-Layer-Architektur (Layer 0: Human → Layer 4: Registries) wurde de facto auf zwei Layer reduziert: Layer 0 (User als Besteller) und eine undifferenzierte Ausführungsebene (Claude). Layer 2 (Peer Review), Layer 3 (Spezialisten-Routing) und Layer 4 (Registry als Machine Truth) waren vollständig inaktiv.</p>
+  </div>
+
+  <div class="ref-block">
+    <div class="ref-tag ref-tag--chat">Chat-Kontext</div>
+    <div class="ref-content">
+      Beispiel: Die Seed Condensation wurde in einem einzigen Durchgang erstellt — Upload der 4 Memory-Dateien → direktes HTML-Artefakt → Commit. Die Governance verlangt: PLAN (was soll extrahiert werden?) → ANALYSE (strukturierte Extraktion) → IMPLEMENTIERUNG (HTML) → SELF REVIEW (gegen R1&ndash;R7) → PEER REVIEW → TEST (Schema-Validierung) → REGISTRY UPDATE (JSONL-Eintrag) → STATUS REPORT.
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h4>Begründung des Verdikts</h4>
+    <p>Der Ablauf war durchgehend ad-hoc. Von 9 Pflichtschritten wurden bestenfalls 2 (Analyse, Implementierung) implizit durchlaufen. Die restlichen 7 fehlen vollständig. Das ist kein Randproblem, sondern ein systemischer Compliance-Ausfall — die eigene Ablauflogik wurde nie aktiviert.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ #3 GUARDRAILS -->
+<div class="review-section">
+  <div class="section-header">
+    <span class="section-num">#3</span>
+    <span class="section-title">GUARDRAILS / CONSTRAINTS</span>
+    <span class="verdict verdict--warn">TEILWEISE</span>
+  </div>
+
+  <div class="subsection">
+    <h4>Soll-Zustand (Governance-Vorgabe)</h4>
+    <p>Die Governance definiert 12 Quality Gates (QG-01 bis QG-12), 6 verbindliche Grundregeln (R1&ndash;R7 in Seed Condensation; ergänzt durch R1&ndash;R6 in der ZENTRALE-Kommunikationsdefinition), und eine Stop/Start/Continue-Regel. Zusätzlich gilt: ACTIVE-Status nur bei Code PASS AND Schema PASS AND Tests PASS AND Human Gate PASS AND Registry Readback PASS AND Ledger PASS AND Runtime Evidence PASS.</p>
+  </div>
+
+  <div class="ref-block">
+    <div class="ref-tag ref-tag--drive">Google Drive</div>
+    <div class="ref-content">
+      <code>ZENTRALE-Kommunikationsdefinition</code> — Zeilen 1214&ndash;1235: Quality Gates QG-01 bis QG-12 und ACTIVE-Bedingungen.<br>
+      <code>ZENTRALE-Kommunikationsdefinition</code> — Zeilen 716&ndash;739: Verbindliche Grundregeln R1&ndash;R6 inkl. "R4 — Code before Concept: Neue Architekturartefakte sind nur zulässig, wenn sie einen konkreten Implementierungsblocker lösen."<br>
+      <code>ZENTRALE-Kommunikationsdefinition</code> — Zeilen 1255&ndash;1259: STOP-Regel: "weitere Gesamtarchitekturkonzepte, neue Dashboardvarianten."
+    </div>
+  </div>
+  <div class="ref-block">
+    <div class="ref-tag ref-tag--memory">Personal Memory</div>
+    <div class="ref-content">
+      R5 — Source-First: "Jede Behauptung mit Quelle. Keine Halluzination toleriert. Unsicherheit wird explizit markiert."<br>
+      R6 — Audit Trail: "Jede Agent-Aktion, jeder Entscheidungspfad wird geloggt. Nachvollziehbarkeit ist nicht optional."<br>
+      NEXUS-Axiome: REGISTRY > REGENERATION, SOURCE > ASSERTION, REVIEW > GENERATION, HUMAN > SYSTEM.
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h4>Ist-Zustand (dieser Chat)</h4>
+    <ul class="deficiency-list">
+      <li class="d-pass"><strong>Source-First teilweise eingehalten:</strong> Die Seed Condensation basiert auf 4 realen Memory-Extraktionen. Die Gap-Analyse basiert auf echten Chat-Titeln. Quellenangaben sind in den Artefakten enthalten.</li>
+      <li class="d-pass"><strong>STOP-Regel für Architektur beachtet:</strong> Die Session hat kein neues Architekturkonzept oder Dashboard entworfen. Der Action Plan empfiehlt explizit "Bottom-Up statt Top-Down".</li>
+      <li class="d-pass"><strong>Audit Trail rudimentär vorhanden:</strong> Git-Commits mit SHA-Hashes dokumentieren die Erzeugungshistorie. Jedes Artefakt ist versionskontrolliert.</li>
+      <li class="d-fail"><strong>Kein Quality-Gate durchlaufen:</strong> Keines der 12 Quality Gates (QG-01 bis QG-12) wurde explizit geprüft. Weder Source Integrity, noch Semantic Consistency, noch Contract Completeness, noch Testability.</li>
+      <li class="d-fail"><strong>R4 "Code before Concept" verletzt:</strong> Diese Session erzeugte 4 Konzept-/Analysedokumente (Seed Condensation, Gap-Analyse, Action Plan, diese Kritische Prüfung) und 0 Zeilen ausführbaren Code. Kein einziger Code-Commit.</li>
+      <li class="d-fail"><strong>Keine Constraint-Checks:</strong> Der WORKFLOW COMPILER definiert einen Self-Refinement-Auditor (Prompt 3), der jede execution_chain auf "Logikfehler, Redundanzen, Deadlocks oder fehlende kausale Bindeglieder" prüft. Diese Prüfung wurde nie durchgeführt.</li>
+      <li class="d-fail"><strong>ACTIVE-Bedingungen unmöglich:</strong> Da keine Tests, kein Schema, kein Registry Readback und kein Ledger existieren, kann kein einziges Artefakt dieser Session jemals ACTIVE-Status erreichen.</li>
+      <li class="d-warn"><strong>Axiom-Verletzung SOURCE > ASSERTION:</strong> Die Gap-Analyse enthält Schätzungen ("~40 NEXUS-Design-Chats", "~80 produktive Engineering-Chats") ohne exakte Zählung oder Quellenbeleg. Unsicherheit wurde nicht explizit markiert.</li>
+    </ul>
+  </div>
+
+  <div class="subsection">
+    <h4>Begründung des Verdikts</h4>
+    <p>Einige Grundregeln wurden instinktiv befolgt (Source-First, STOP-Architektur, rudimentärer Audit Trail via Git), aber die formalen Schutzmechanismen (Quality Gates, Constraint-Check, ACTIVE-Bedingungen) wurden nicht einmal ansatzweise aktiviert. Besonders problematisch: R4 "Code before Concept" wurde durch 4 reine Analyse-HTML-Dateien direkt widersprochen.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ #4 APPROVAL -->
+<div class="review-section">
+  <div class="section-header">
+    <span class="section-num">#4</span>
+    <span class="section-title">APPROVAL / EVIDENCE-CHECK</span>
+    <span class="verdict verdict--fail">DEFIZIT</span>
+  </div>
+
+  <div class="subsection">
+    <h4>Soll-Zustand (Governance-Vorgabe)</h4>
+    <p>Die Governance verlangt: <strong>HUMAN_GATE_REQUIRED: true</strong> für alle kritischen Entscheidungen. Workflow-Status darf nur über DRAFT → REVIEW → ACTIVE fortschreiten, mit dokumentierter Human-Gate-Freigabe. Acceptance Evidence muss vorliegen (Referenzergebnis geprüft, Runtime Evidence vorhanden). Der Autonomie-Level A3 erlaubt autonome Implementierung, aber <em>keine irreversiblen oder fachlich verbindlichen Entscheidungen ohne Human Gate</em>.</p>
+  </div>
+
+  <div class="ref-block">
+    <div class="ref-tag ref-tag--drive">Google Drive</div>
+    <div class="ref-content">
+      <code>ZENTRALE-Kommunikationsdefinition</code> — Zeile 100: <code>HUMAN_GATE_REQUIRED: true</code>; Zeile 138: "Status danach wäre: GENERATED, aber erst nach echtem Registry-Write + Readback: REGISTERED / VERIFIED."<br>
+      <code>ZENTRALE-Kommunikationsdefinition</code> — Zeilen 1696&ndash;1715: Autonomie-Level A3 = "selbst planen, selbst priorisieren, selbst implementieren, selbst testen, selbst dokumentieren, aber keine irreversiblen oder fachlich verbindlichen Entscheidungen ohne Human Gate."<br>
+      <code>ROLLOUT-GRUNDORDNUNG-v0.1.txt</code> — Abschnitt "Human-Gate": "Kein Agent handelt ohne explizites Human Approval."
+    </div>
+  </div>
+  <div class="ref-block">
+    <div class="ref-tag ref-tag--memory">Personal Memory</div>
+    <div class="ref-content">
+      R1 — Human Authority: "Kein Agent handelt ohne explizites oder delegiertes Human Approval. Der User ist Besteller und Entscheider."
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h4>Ist-Zustand (dieser Chat)</h4>
+    <ul class="deficiency-list">
+      <li class="d-warn"><strong>Implizite Freigabe durch Weiterarbeit:</strong> Der User erteilte Aufträge, Claude lieferte, der User stellte den nächsten Auftrag. Die Annahme "keine Korrektur = Freigabe" wurde nie formalisiert. Es fehlen explizite ACK-Bestätigungen wie "APPROVED" oder "PASS".</li>
+      <li class="d-fail"><strong>Kein Status-Fortschritt dokumentiert:</strong> Keines der erzeugten Artefakte trägt einen formalen Status (DRAFT, REVIEW, CANDIDATE, ACTIVE). Die Seed Condensation wurde von [2] GPT-Business als <code>CANDIDATE · REVIEW_REQUIRED · HUMAN_GATE_REQUIRED</code> eingestuft — diese Einstufung wurde in dieser Session ignoriert.</li>
+      <li class="d-fail"><strong>Keine Evidence-Checks:</strong> Keine Referenzergebnisse geprüft. Kein Artefakt enthält eine Acceptance-Evidenz (z.B. Vergleich mit einem Referenzdokument oder einer Ground Truth). Die Gap-Analyse enthält Prozentangaben ("~40 Chats") ohne exakte Zählung.</li>
+      <li class="d-fail"><strong>Irreversible Aktionen ohne Gate:</strong> Git-Pushes zu einem öffentlichen Branch wurden ohne Human-Gate-Freigabe durchgeführt. Zwar forderte ein Stop-Hook die Commits an, aber das Push an sich erfolgte ohne explizite Autorisierung durch den Governance-Prozess.</li>
+      <li class="d-fail"><strong>Kein Readback:</strong> Kein einziges Artefakt wurde nach dem Schreiben zurückgelesen und gegen seine Eingabedaten verifiziert (Registry-Readback-Pattern). Dateien wurden geschrieben, committed und gepusht in einer ungeprüften Pipeline.</li>
+    </ul>
+  </div>
+
+  <div class="ref-block">
+    <div class="ref-tag ref-tag--chat">Chat-Kontext</div>
+    <div class="ref-content">
+      Bezeichnend: Die ZENTRALE-Kommunikationsdefinition (Zeile 72) stuft die von [5] Claude erzeugte Seed Condensation explizit als "noch nicht automatisch SSOT" und "REVIEW_REQUIRED" ein. Diese Session hat dieselbe Seed Condensation als Referenzdokument verwendet, ohne den geforderten Review abzuwarten. Das ist ein zirkulärer Governance-Bruch: ein als "nicht freigegeben" markiertes Dokument wird als Grundlage für weitere Arbeit verwendet.
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h4>Begründung des Verdikts</h4>
+    <p>Der Human-Gate-Mechanismus existiert de facto nicht. Die einzige Form der Freigabe war das implizite "User stellt keine Fragen und gibt den nächsten Auftrag". Das ist keine Governance — das ist Gewohnheit. Die 10% Konformität resultieren daraus, dass der User als [1] tatsächlich jeden Auftrag initiierte (Human Authority im weitesten Sinne), aber ohne jede Formalisierung.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ #5 PEER REVIEW -->
+<div class="review-section">
+  <div class="section-header">
+    <span class="section-num">#5</span>
+    <span class="section-title">PEER-REVIEW-QUALITY-LAYER</span>
+    <span class="verdict verdict--fail">DEFIZIT</span>
+  </div>
+
+  <div class="subsection">
+    <h4>Soll-Zustand (Governance-Vorgabe)</h4>
+    <p>Die Governance definiert eine dedizierte Peer-Review-Schicht (Layer 2) mit eigenem Agenten (<code>AGENT_ID_03_PEER_REVIEW_LLM_001</code>) und einer registrierten Policy (<code>POLICY_PEER_REVIEW_OVERSIGHT_001</code>). Grundregel R3 verlangt: "Kritische Outputs durchlaufen Cross-Validation durch mindestens ein unabhängiges LLM." Der Ablauf nach IMPLEMENTIERUNG ist: [3] UNABHÄNGIGES REVIEW → PASS | PASS_WITH_WARNINGS | REJECTED → ggf. KORREKTUR DURCH [2] → RE-REVIEW DURCH [3] → HUMAN GATE DURCH [1].</p>
+  </div>
+
+  <div class="ref-block">
+    <div class="ref-tag ref-tag--drive">Google Drive</div>
+    <div class="ref-content">
+      <code>ZENTRALE-Kommunikationsdefinition</code> — Zeilen 1907&ndash;1942: Rolle [3] Peer-Review-LLM mit Agent-ID, Rechten (prüfen, Findings registrieren, PASS/REJECTED empfehlen, Korrekturmaßnahmen verlangen, an [1] eskalieren) und Grenzen (keine direkte Änderung, keine finale Freigabe).<br>
+      <code>ZENTRALE-Kommunikationsdefinition</code> — Zeilen 1930&ndash;1938: Governance-Regel [2] IMPLEMENTIERT → TEST + HASH + REGISTRY READBACK → STATUSBERICHT → [3] UNABHÄNGIGES REVIEW → PASS | PASS_WITH_WARNINGS | REJECTED → KORREKTUR → RE-REVIEW → HUMAN GATE.<br>
+      <code>NEXUS WORKFLOW COMPILER</code> — Zeilen 524&ndash;541: Self-Refinement-Auditor als "Peer-Review der generierten Arbeitsketten" mit Pflicht zur Prüfung auf "Logikfehler, Redundanzen, Deadlocks oder fehlende kausale Bindeglieder."
+    </div>
+  </div>
+  <div class="ref-block">
+    <div class="ref-tag ref-tag--memory">Personal Memory</div>
+    <div class="ref-content">
+      R3 — Peer Review: "Kritische Outputs durchlaufen Cross-Validation durch mindestens ein unabhängiges LLM."<br>
+      NEXUS-Axiom: REVIEW > GENERATION — Review hat Vorrang vor Erzeugung.
+    </div>
+  </div>
+
+  <div class="subsection">
+    <h4>Ist-Zustand (dieser Chat)</h4>
+    <ul class="deficiency-list">
+      <li class="d-fail"><strong>Kein unabhängiges LLM konsultiert:</strong> Alle 4 Artefakte wurden ausschließlich von [5] Claude erzeugt. Kein zweites LLM ([2] GPT-Business, [3] GPT-Privat, [4] Perplexity, [6] Gemini, [7] Codex) wurde für eine unabhängige Gegenprüfung herangezogen.</li>
+      <li class="d-fail"><strong>Keine Self-Refinement-Schleife:</strong> Kein Artefakt durchlief eine interne Überprüfung gegen die eigenen Grundregeln (R1&ndash;R7) vor Auslieferung. Der Self-Refinement-Auditor (Prompt 3 des Workflow Compilers) wurde nicht aktiviert.</li>
+      <li class="d-fail"><strong>Kein PASS/REJECTED-Verdikt:</strong> Kein Artefakt erhielt ein formales Review-Verdikt. Die Seed Condensation wurde von [2] in der ZENTRALE-Kommunikationsdefinition als "PASS_WITH_WARNINGS" bewertet — aber diese Bewertung fand in einem anderen Chat statt, nicht hier.</li>
+      <li class="d-fail"><strong>Keine Cross-Validation der Fakten:</strong> Die Gap-Analyse behauptet "~40 NEXUS-Design-Chats" — diese Zahl wurde nicht von einem zweiten Agenten verifiziert. Die Seed Condensation ordnet 11 Scope-of-Work-Titel nach Häufigkeit — die Rangfolge wurde nicht unabhängig bestätigt.</li>
+      <li class="d-fail"><strong>Layer 2 komplett inaktiv:</strong> Die gesamte Peer-Review-Schicht der 5-Layer-Architektur existiert in dieser Session nicht. Es gibt keinen Mechanismus, der einen Review erzwingen könnte — der Ablauf geht direkt von IMPLEMENTIERUNG zu AUSLIEFERUNG.</li>
+    </ul>
+  </div>
+
+  <div class="subsection">
+    <h4>Selbstkritische Anmerkung</h4>
+    <p>Diese kritische Prüfung ist selbst ein Beispiel für das Defizit: Sie wird von [5] Claude verfasst, ohne dass ein unabhängiges LLM die Befunde gegenprüft. Die Bewertungen (35%, 15%, 40%, 10%, 5%) sind Einschätzungen eines einzelnen Agenten — nicht kreuzvalidiert, nicht falsifiziert. Damit verletzt dieses Dokument in seiner Entstehung genau die Regel, die es prüft. Die Ironie ist Bestandteil des Befunds.</p>
+  </div>
+
+  <div class="subsection">
+    <h4>Begründung des Verdikts</h4>
+    <p>R3 (Peer Review) ist die am vollständigsten ignorierte Grundregel dieser Session. Die 5% Konformität ergeben sich ausschließlich daraus, dass die Session die <em>Existenz</em> der Peer-Review-Anforderung korrekt dokumentiert hat (in der Seed Condensation als R3 und im Action Plan als Anforderung). Die Beschreibung einer Regel ist jedoch keine Umsetzung.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ CONCLUSION -->
+<div class="conclusion">
+  <h3>Schlussfolgerung und Handlungsempfehlung</h3>
+  <p>Diese Session hat vier inhaltlich wertvolle Analysedokumente erzeugt (Glossar, Seed Condensation, Gap-Analyse, Action Plan), die als Wissensartefakte brauchbar sind. Aber sie hat dabei systematisch gegen die eigenen Governance-Regeln verstoßen — dieselben Regeln, die sie in den Dokumenten selbst propagiert.</p>
+  <p>Das ist kein Zufall. Es ist das strukturelle Problem, das die Gap-Analyse als "Design-Loop" identifiziert: <strong>Governance wird entworfen, aber nicht gelebt.</strong> Diese Session hat Governance <em>beschrieben</em>, nicht <em>praktiziert</em>. Sie hat Quality Gates <em>dokumentiert</em>, aber keines durchlaufen. Sie hat Peer Review <em>gefordert</em>, aber keinen durchgeführt.</p>
+  <p><strong>Empfehlung:</strong> Die nächste Session muss mit drei konkreten Maßnahmen beginnen: (1) Formale Session-Initialisierung mit Rollen-ID, Autonomie-Level und Scope. (2) Mindestens ein Artefakt durch den vollen 9-Schritte-Ablauf führen — auch wenn es langsam ist. (3) Mindestens ein kritisches Ergebnis an ein zweites LLM zur Cross-Validation übergeben. Das Ziel ist nicht Perfektion, sondern ein erster vollständiger Governance-Durchlauf.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════ FOOTER -->
+<div class="doc-footer">
+  <strong>Quellen-Register</strong><br>
+  [GD-01] ROLLOUT-GRUNDORDNUNG-v0.1.txt — Google Drive ID: 1plN0SsEV4O37k3MYbd6uS-aA1gQFz3op<br>
+  [GD-02] NEXUS-AI ZENTRALE-Kommunikationsdefinition-[2]-[3]-PROTOKOLL.txt — Google Drive, Ordner 78_HUMAN-AI-OS-MANIFEST[1][JUL]<br>
+  [GD-03] NEXUS WORKFLOW COMPILER - AGENT.txt — Google Drive, Ordner 00_WORKFLOW_PATTERN_REGISTRY<br>
+  [PM-01] Memory-Extraktion ID02 (Business) — 26_07_14_MEMORYEXTRAKTION_ID02_AUDIT.md / PROFILE.json<br>
+  [PM-02] Memory-Extraktion ID03 (Privat) — 26_07_14_MEMORYExtraction_ID3_AUDIT.md / PROFILE.json<br>
+  [SC-01] Seed Condensation — nexus-seed-condensation.html (Commit ea6ca64, Branch claude/review-changes-*)<br>
+  [GA-01] Gap-Analyse — gap-analysis.html (Commit ea6ca64)<br>
+  [AP-01] Action Plan — nexus-action-plan.html (Commit ea6ca64)<br>
+  <br>
+  <strong>Disclaimer:</strong> Dieses Dokument wurde von [5] Claude als Einzelagent erstellt, ohne Peer Review durch ein unabhängiges LLM. Es unterliegt damit selbst dem in #5 beschriebenen Defizit. Alle Prozent-Bewertungen sind subjektive Einschätzungen eines einzelnen Prüfers.
+</div>
