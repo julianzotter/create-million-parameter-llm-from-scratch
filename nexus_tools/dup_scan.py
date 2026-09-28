@@ -1,73 +1,92 @@
 """Read-only duplicate-candidate scanner (Baseline MUST-157).
 
 Input: JSON list of file metadata, e.g. exported from a Drive listing:
-    [{"id": "...", "title": "...", "size": 123, "md5": "..."?, "parent": "..."?}]
+    [{"id": "...", "title": "...", "size": 123 | "123", "md5"?: "...", "mimeType"?: "..."}]
 
-Rules:
-- same title + same size  -> DUPLICATE_CANDIDATE (never proven identity)
-- same content hash       -> CONTENT_HASH_MATCH (strong hint; registry decides)
-- Drive shortcuts, IN/OUT pairs and version pairs (v1.0 vs v1.1) are not grouped
-- the scanner never allocates IDs, never renames, moves or deletes anything
+Every finding is a DUPLICATE_CANDIDATE (MUST-157); `basis` states the evidence,
+strongest first: content_hash > title_size > size_only. A file pair is reported
+once, under its strongest basis.
+
+Not compared / excluded:
+- Drive shortcuts; entries without id (listed under "skipped")
+- files without a usable size or hash (e.g. native Google Docs/Sheets) and size 0
+- size_only pairs whose titles share a stem after removing version suffixes
+  (v1.0, V2, -v1.1) and IN/OUT markers: legitimate version / IN-OUT pairs
+The scanner never allocates IDs, renames, moves or deletes anything.
 """
 from __future__ import annotations
 
+import itertools
 import json
 import re
 import sys
 from collections import defaultdict
+from collections.abc import Callable, Hashable
 from pathlib import Path
 from typing import Any
 
 SHORTCUT_MIME = "application/vnd.google-apps.shortcut"
+_VERSION = re.compile(r"(?i)[ _.-]v\d+(\.\d+)*")
+_INOUT = re.compile(r"(?i)(^|[ _.-])(in|out)(?=$|[ _.-])")
+_BASES = ("content_hash", "title_size", "size_only")
+
+FileMeta = dict[str, Any]
 
 
-def _hash_of(f: dict[str, Any]) -> str | None:
-    return f.get("sha256") or f.get("md5")
+def _size(f: FileMeta) -> int | None:
+    try:
+        n = int(str(f.get("size")).strip())
+    except (TypeError, ValueError):
+        return None
+    return n if n > 0 else None
 
 
-def _groups(files: list[dict[str, Any]], key) -> list[list[dict[str, Any]]]:
-    buckets: dict[Any, list[dict[str, Any]]] = defaultdict(list)
-    for f in files:
-        k = key(f)
-        if k is not None:
-            buckets[k].append(f)
-    return [g for g in buckets.values() if len(g) > 1]
+def _stem(title: str | None) -> str:
+    base = (title or "").rsplit(".", 1)[0]
+    return _INOUT.sub(r"\1", _VERSION.sub("", base)).strip(" _.-").lower()
 
 
-def _versioned_title(title: str) -> bool:
-    return bool(re.search(r"_v\d+\.\d+", title))
-
-
-def scan(files: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Return candidate groups; each group lists file IDs and the evidence used."""
-    real = [f for f in files if f.get("mimeType") != SHORTCUT_MIME]
-    findings: list[dict[str, Any]] = []
-    seen: set[frozenset[str]] = set()
-    for g in _groups(real, lambda f: _hash_of(f)):
-        ids = frozenset(f["id"] for f in g)
-        seen.add(ids)
-        findings.append(_finding("CONTENT_HASH_MATCH", g, "equal content hash"))
-    for g in _groups(real, lambda f: (f.get("title"), f.get("size")) if f.get("size") else None):
-        ids = frozenset(f["id"] for f in g)
-        if ids in seen:
-            continue
-        findings.append(_finding("DUPLICATE_CANDIDATE", g, "same title and size"))
-    for g in _groups(real, lambda f: f.get("size") if f.get("size") and int(f["size"]) > 1024 else None):
-        ids = frozenset(f["id"] for f in g)
-        titles = {f.get("title") for f in g}
-        if ids in seen or len(titles) == 1 or any(_versioned_title(t or "") for t in titles):
-            continue
-        seen.add(ids)
-        findings.append(_finding("SIZE_ONLY_HINT", g, "same size, different title (weak)"))
-    return findings
-
-
-def _finding(kind: str, group: list[dict[str, Any]], basis: str) -> dict[str, Any]:
+def _keys() -> dict[str, Callable[[FileMeta], Hashable | None]]:
     return {
-        "classification": kind,
+        "content_hash": lambda f: f.get("sha256") or f.get("md5"),
+        "title_size": lambda f: (f["title"], _size(f)) if f.get("title") and _size(f) else None,
+        "size_only": _size,
+    }
+
+
+def scan(files: list[FileMeta]) -> dict[str, Any]:
+    """Return {"findings": [...], "skipped": [...], "not_comparable": n}."""
+    skipped = [f for f in files if not f.get("id")]
+    real = [f for f in files if f.get("id") and f.get("mimeType") != SHORTCUT_MIME]
+    reported: set[frozenset[str]] = set()
+    findings: list[dict[str, Any]] = []
+    keys = _keys()
+    for basis in _BASES:
+        buckets: dict[Hashable, list[FileMeta]] = defaultdict(list)
+        for f in real:
+            k = keys[basis](f)
+            if k is not None:
+                buckets[k].append(f)
+        for group in buckets.values():
+            for a, b in itertools.combinations(group, 2):
+                pair = frozenset((a["id"], b["id"]))
+                if pair in reported or a["id"] == b["id"]:
+                    continue
+                if basis == "size_only" and _stem(a.get("title")) == _stem(b.get("title")):
+                    continue
+                reported.add(pair)
+                findings.append(_finding(basis, a, b))
+    not_comparable = sum(1 for f in real if keys["content_hash"](f) is None and _size(f) is None)
+    return {"findings": findings, "skipped": skipped, "not_comparable": not_comparable}
+
+
+def _finding(basis: str, a: FileMeta, b: FileMeta) -> dict[str, Any]:
+    return {
+        "classification": "DUPLICATE_CANDIDATE",
         "basis": basis,
-        "files": [{k: f.get(k) for k in ("id", "title", "size", "parent")} for f in group],
-        "action": "NONE (read-only); registry owner decides CANONICAL/REFERENCE/DERIVED",
+        "strength": {"content_hash": "strong", "title_size": "medium", "size_only": "weak"}[basis],
+        "files": [{k: f.get(k) for k in ("id", "title", "size", "parent")} for f in (a, b)],
+        "action": "NONE (read-only); registry owner decides identity/status",
     }
 
 

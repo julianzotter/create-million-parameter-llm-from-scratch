@@ -19,6 +19,8 @@ class SourceStatus(str, Enum):
     DERIVED = "DERIVED"
     OBSOLETE = "OBSOLETE"
     UNKNOWN = "UNKNOWN"
+    HISTORICAL = "HISTORICAL"  # proposal P-17 (archiving)
+    STALE = "STALE"  # mirror not updated after canonical change (MUST-134)
 
 
 class TicketStatus(str, Enum):  # MUST-43/44
@@ -49,7 +51,8 @@ class SourceIdentity(BaseModel):
     source_uri: str
     representation: str = Field(description="MIME type / export format of the bytes hashed")
     size_bytes: Optional[int] = None
-    sha256: Optional[str] = Field(default=None, description="Only set from actual bytes")
+    sha256: Optional[str] = Field(default=None, pattern=r"^[0-9a-f]{64}$",
+                                  description="Only set from actual bytes")
     modified_at: Optional[str] = None
     status: SourceStatus = SourceStatus.UNKNOWN
     visibility: str = Field(default="private", description="public|private (MUST-122)")
@@ -109,6 +112,9 @@ class RunRecord(BaseModel):
     risks: list[str] = []
     next_action: list[str] = Field(default=[], max_length=3)
     qa_status: str = "PENDING"
+    evidence_status: str = "UNVERIFIED"
+    # Raw tool outputs used as evidence: label -> SHA-256 (proposal P-10).
+    evidence_hashes: dict[str, str] = {}
 
     def to_markdown(self) -> str:
         """Render the report-back block; empty sections are stated, not dropped (MUST-53)."""
@@ -121,15 +127,19 @@ class RunRecord(BaseModel):
             f"tool_scope: {e.tool_scope}",
             f"started_at: {self.started_at} | completed_at: {self.completed_at or 'n/a'}",
             f"ticket_status: {self.ticket_status.value} | dev_state: {self.dev_state.value}"
-            f" | qa_status: {self.qa_status}",
+            f" | qa_status: {self.qa_status} | evidence_status: {self.evidence_status}",
         ]
         sections = [
             ("INPUTS", self.inputs), ("FINDINGS", self.findings),
             ("EVIDENCE/SOURCES", self.evidence), ("ARTIFACTS", self.artifacts),
             ("RISKS", self.risks), ("NEXT_ACTION", self.next_action),
+            ("EVIDENCE_HASHES", [f"{k}: sha256={v}" for k, v in self.evidence_hashes.items()]),
         ]
         out = ["```", *head, "```"]
         for name, items in sections:
             out.append(f"\n### {name}")
-            out.extend(f"- {i}" for i in items) if items else out.append("- (none)")
+            if items:
+                out.extend("- " + i.replace("\n", " ") for i in items)
+            else:
+                out.append("- (none)")
         return "\n".join(out) + "\n"
